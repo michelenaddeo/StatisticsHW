@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HMWK 2 — From wallet seed to Ethereum address</title>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f1e7;--fg:#1e2230;--mut:#625f57;--card:#fffcf5;--bd:#e4dccb;--ac:#0b6b6b;--ac2:#c27a0e;--hi:#b5391c;--btn:#fff;--soft:rgba(11,107,107,.08);--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--serif:Charter,"Iowan Old Style",Georgia,"Times New Roman",serif}
+:root[data-theme="dark"]{--bg:#13161d;--fg:#ece7da;--mut:#a29d90;--card:#1a1e27;--bd:#2f3440;--ac:#4fc0b8;--ac2:#e0a24a;--hi:#ff8f6b;--btn:#0d1a1a;--soft:rgba(79,192,184,.12)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13161d;--fg:#ece7da;--mut:#a29d90;--card:#1a1e27;--bd:#2f3440;--ac:#4fc0b8;--ac2:#e0a24a;--hi:#ff8f6b;--btn:#0d1a1a;--soft:rgba(79,192,184,.12)}}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:920px;margin:0 auto;padding:16px 14px 70px}
+.hero{border-left:6px solid var(--ac);padding:4px 0 6px 20px;margin:14px 0 22px}
+.hero h1{margin:4px 0 8px;font:700 2rem/1.18 var(--serif);letter-spacing:-.01em}.hero p{margin:0;color:var(--mut);max-width:64ch}
+.hero .badge{display:block;color:var(--ac);font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+h2{font:700 1.3rem/1.25 var(--serif);margin:0 0 6px;display:flex;align-items:baseline;gap:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}h2 i{font:italic 700 1.5rem var(--serif);color:var(--ac2);flex:none;min-width:1.1em}
+h3{font-size:.95rem;margin:14px 0 4px}
+p,li{max-width:72ch}.mut{color:var(--mut);font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:18px;margin:14px 0;box-shadow:0 1px 0 var(--bd)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.col{flex:1;min-width:250px}
+label{font-size:.85rem;color:var(--mut)}input,select,textarea,button{font:inherit;padding:7px 11px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--fg)}
+input[type=range]{padding:0;accent-color:var(--ac)}input[type=number]{width:74px}textarea{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:.85rem}
+button{cursor:pointer;background:var(--ac);color:var(--btn);border:0;transition:transform .1s}button:active{transform:scale(.96)}button.sec{background:var(--soft);color:var(--ac);font-weight:600}
+button.on{background:var(--ac);color:var(--btn)}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{border-bottom:1px solid var(--bd);padding:7px 8px;text-align:left;vertical-align:top}th{color:var(--mut);font-weight:600}
+code,.mono{font-family:var(--mono);font-size:.84em}code{background:var(--soft);padding:1px 6px;border-radius:5px}
+.mono{word-break:break-all}svg{max-width:100%;height:auto}
+.hist{display:flex;align-items:flex-end;gap:3px;height:90px;border-bottom:1px solid var(--mut);margin-top:6px}
+.hist div{flex:1;background:var(--ac);min-width:6px;border-radius:3px 3px 0 0}
+.lbl{display:flex;gap:3px;font-size:.62rem;color:var(--mut)}.lbl span{flex:1;text-align:center;min-width:6px}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}.stat div{background:var(--soft);border-radius:10px;padding:10px}.stat b{display:block;font:700 1.35rem var(--serif);color:var(--ac)}.stat span{font-size:.78rem;color:var(--mut)}
+.pill{display:inline-block;font-size:.72rem;padding:1px 9px;border-radius:99px;background:var(--soft);color:var(--ac);font-weight:600}
+.bit{display:inline-block;width:1.3em;text-align:center;border-radius:4px;font-family:var(--mono)}.bit.d{background:var(--hi);color:#fff}
+.out{background:var(--soft);border-radius:10px;padding:10px 12px;margin:8px 0}
+@media print{body{background:#fff}.card{break-inside:avoid;box-shadow:none}button{display:none}}
+
+.tl{display:flex;flex-wrap:wrap;gap:8px}.tl button{flex:1 1 110px;text-align:left;background:var(--soft);color:var(--fg);border:1px solid transparent;border-radius:10px;padding:8px 10px}
+.tl button b{color:var(--ac);font-size:1.05rem;display:block}.tl button.on{border-color:var(--ac);background:var(--card)}.tl button.on b{color:var(--ac)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{border-radius:99px}
+.grid{display:grid;grid-template-columns:repeat(32,1fr);gap:2px;max-width:420px}.grid i{aspect-ratio:1;border-radius:2px;background:var(--soft)}.grid i.d{background:var(--hi)}
+.ad span{padding:0 1px}.ad .u{color:var(--ac);font-weight:800}.ok{color:var(--ac2);font-weight:700}.bad{color:var(--hi);font-weight:700}
+details summary{cursor:pointer}
+</style></head><body><main>
+<div class="hero"><span class="badge">Homework 2 · Key derivation and hashing</span><h1>From wallet seed to Ethereum address</h1>
+<p>From mnemonic to checksummed address: BIP-39, BIP-32, BIP-44, secp256k1, Keccak-256 and EIP-55. Each step below is computed in the browser; use test phrases only, never a real wallet seed.</p></div>
+
+<div class="card"><h2><i>1</i>Wallet pipeline, step by step</h2>
+<p class="mut">The default input is the public development phrase “test … junk”, whose first address is <span class="mono">0xf39F…2266</span>.</p>
+<div class="row"><button id="m1" class="on">Start from mnemonic</button><button id="m2" class="sec">Start from raw private key</button></div>
+<div id="pm"><label>Mnemonic</label><textarea id="mn" rows="2">test test test test test test test test test test test junk</textarea>
+<div class="row"><label>Passphrase <input id="pw" placeholder="(optional)"></label>
+<label>Path m/44'/60'/<input id="ac" type="number" min="0" value="0">'/<input id="ch" type="number" min="0" max="1" value="0">/<input id="ix" type="number" min="0" value="0"></label></div></div>
+<div id="pk" hidden><label>Private key (64 hex chars)</label><textarea id="kk" rows="2">0000000000000000000000000000000000000000000000000000000000000001</textarea><div class="row"><button id="rnd" class="sec">Generate random key</button></div></div>
+<div class="row"><button id="go">Derive</button><span id="warn" class="mut"></span></div>
+<div id="stages"></div></div>
+
+<div class="card"><h2><i>2</i>Hash lab: Keccak vs SHA-3, and the avalanche effect</h2>
+<textarea id="ht" rows="1">hello</textarea>
+<div id="hout" class="out mono"></div>
+<div class="row"><button id="flip" class="sec">Flip 1 random input bit</button><span id="hinfo" class="mut"></span></div>
+<div id="grid" class="grid"></div></div>
+
+<div class="card"><h2><i>3</i>EIP-55 lab: checksum as error detection</h2>
+<input id="ea" style="width:100%;box-sizing:border-box" class="mono" value="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266">
+<div class="row" style="margin-top:8px"><button id="typo" class="sec">Introduce a random typo</button><button id="fix" class="sec">Restore valid checksum</button><button id="low" class="sec">All lowercase</button></div>
+<div id="eout" class="out"></div></div>
+
+<div class="card"><h2><i>4</i>Roles and distinctions</h2>
+<div class="chips" id="chips"></div><div id="cdef" class="out"></div>
+<div class="scroll"><table><tr><th>Component</th><th>Role</th><th>Kind</th></tr>
+<tr><td>BIP-39</td><td>Encodes entropy (128–256 bits) + checksum as words from a 2048-word list; seed = PBKDF2-HMAC-SHA512 (2048 iterations, salt "mnemonic"+passphrase).</td><td>generation, encoding, seed derivation</td></tr>
+<tr><td>BIP-32</td><td>Seed → master key + chain code (HMAC-SHA512, key "Bitcoin seed") → tree of child keys; hardened or normal.</td><td>derivation</td></tr>
+<tr><td>BIP-44</td><td>Path convention <code>m/purpose'/coin_type'/account'/change/index</code>; coin_type 60 = Ethereum.</td><td>organisation standard</td></tr>
+<tr><td>secp256k1</td><td>y² = x³ + 7 over a 256-bit prime: Q = kG; digital signatures (ECDSA).</td><td>public-key cryptography</td></tr>
+<tr><td>Keccak-256</td><td>Hash of the 64-byte public key; the last 20 bytes are the address.</td><td>hashing</td></tr>
+<tr><td>EIP-55</td><td>Letter case follows the Keccak-256 hash of the lowercase address (nibble ≥ 8 → uppercase).</td><td>checksum</td></tr></table></div></div>
+
+<div class="card"><h2><i>5</i>Historical context</h2><div class="tl" id="tl"></div><div id="tld" class="out"></div>
+<h3>SHA-2 / SHA-512 vs Keccak / SHA-3</h3>
+<p>SHA-2 uses the Merkle–Damgård construction; Keccak uses the sponge construction and won the NIST SHA-3 competition (final 2012, standard 2015). Ethereum adopted Keccak-256 before standardisation; NIST then changed the padding byte (<code>0x06</code> in SHA3-256, <code>0x01</code> in Keccak), so the outputs differ. Section 2 shows the difference.</p></div>
+
+<div class="card"><h2><i>6</i>Why several primitives, and what about statistics?</h2>
+<p><b>Different jobs.</b> BIP-39/32/44 manage and derive keys from one backup; secp256k1 gives the private/public relation and signatures; Keccak-256 shortens and uniformises the identifier without exposing the public key; EIP-55 catches transcription errors. Separate roles mean each piece can be replaced independently and each task uses the most suitable tool.</p>
+<p><b>Statistical properties.</b> Mnemonic entropy and the private key must be uniform and unpredictable (a weak random generator breaks the wallet). HMAC-SHA512, PBKDF2 and Keccak show avalanche: one flipped input bit changes about half of the output bits (section 2). The point (x, y) is not a hash output, so Keccak-256 is applied before the address. The address digits are close to uniform, so the EIP-55 capitalisation pattern behaves like a pseudorandom label.</p>
+<p><b>Experimenting with a wallet.</b> In MetaMask, Rabby or Rainbow (test wallet, no funds): view the 12 words, add a second account (same seed, new BIP-44 index; set index 1 above and compare), notice the capitals in the address, import the same seed elsewhere and check the addresses match.</p></div>
+
+<script>
+const subtle=globalThis.crypto.subtle,enc=s=>new TextEncoder().encode(s);
+const H=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+const U8=h=>Uint8Array.from(h.match(/../g)||[],x=>parseInt(x,16));
+const cat=(...a)=>{const o=new Uint8Array(a.reduce((s,x)=>s+x.length,0));let i=0;a.forEach(x=>{o.set(x,i);i+=x.length});return o};
+const M64=(1n<<64n)-1n,rot=(v,n)=>n?((v<<BigInt(n))|(v>>BigInt(64-n)))&M64:v;
+const RO=Array(25).fill(0);{let x=1,y=0;for(let t=0;t<24;t++){RO[x+5*y]=((t+1)*(t+2)/2)%64;[x,y]=[y,(2*x+3*y)%5]}}
+const RC=[0x1n,0x8082n,0x800000000000808an,0x8000000080008000n,0x808bn,0x80000001n,0x8000000080008081n,0x8000000000008009n,0x8an,0x88n,0x80008009n,0x8000000an,0x8000808bn,0x800000000000008bn,0x8000000000008089n,0x8000000000008003n,0x8000000000008002n,0x8000000000000080n,0x800an,0x800000008000000an,0x8000000080008081n,0x8000000000008080n,0x80000001n,0x8000000080008008n];
+function kf(s){for(let r=0;r<24;r++){const C=[0,1,2,3,4].map(x=>s[x]^s[x+5]^s[x+10]^s[x+15]^s[x+20]);
+ for(let x=0;x<5;x++){const d=C[(x+4)%5]^rot(C[(x+1)%5],1);for(let y=0;y<25;y+=5)s[y+x]^=d}
+ const B=Array(25);for(let x=0;x<5;x++)for(let y=0;y<5;y++)B[y+5*((2*x+3*y)%5)]=rot(s[x+5*y],RO[x+5*y]);
+ for(let x=0;x<5;x++)for(let y=0;y<5;y++)s[x+5*y]=B[x+5*y]^((~B[(x+1)%5+5*y]&M64)&B[(x+2)%5+5*y]);
+ s[0]^=RC[r]}}
+function keccak(b,pad=1){const R=136,m=[...b,pad];while(m.length%R)m.push(0);m[m.length-1]|=0x80;
+ const s=Array(25).fill(0n);for(let o=0;o<m.length;o+=R){for(let i=0;i<R/8;i++){let v=0n;for(let j=7;j>=0;j--)v=(v<<8n)|BigInt(m[o+i*8+j]);s[i]^=v}kf(s)}
+ const out=[];for(let i=0;i<4;i++)for(let j=0;j<8;j++)out.push(Number((s[i]>>BigInt(8*j))&255n));return Uint8Array.from(out)}
+const p=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2Fn,N=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141n;
+const GP=[0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798n,0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8n];
+const mod=(a,m=p)=>((a%m)+m)%m;
+const invm=(a,m=p)=>{let[r0,r1]=[mod(a,m),m],[s0,s1]=[1n,0n];while(r1){const q=r0/r1;[r0,r1]=[r1,r0-q*r1];[s0,s1]=[s1,s0-q*s1]}return mod(s0,m)};
+function padd(A,B){if(!A)return B;if(!B)return A;let l;
+ if(A[0]===B[0]){if(mod(A[1]+B[1])===0n)return null;l=mod(3n*A[0]*A[0]*invm(2n*A[1]))}else l=mod((B[1]-A[1])*invm(B[0]-A[0]));
+ const x=mod(l*l-A[0]-B[0]);return[x,mod(l*(A[0]-x)-A[1])]}
+function pmul(k,P){let R=null,Q=P;while(k>0n){if(k&1n)R=padd(R,Q);Q=padd(Q,Q);k>>=1n}return R}
+const hex32=n=>n.toString(16).padStart(64,'0');
+const u32=i=>new Uint8Array([i>>>24,(i>>>16)&255,(i>>>8)&255,i&255]);
+const hmac=async(k,d)=>new Uint8Array(await subtle.sign('HMAC',await subtle.importKey('raw',k,{name:'HMAC',hash:'SHA-512'},false,['sign']),d));
+async function seedOf(m,pw){const k=await subtle.importKey('raw',enc(m.normalize('NFKD')),'PBKDF2',false,['deriveBits']);
+ return new Uint8Array(await subtle.deriveBits({name:'PBKDF2',salt:enc('mnemonic'+pw.normalize('NFKD')),iterations:2048,hash:'SHA-512'},k,512))}
+async function bip32(seed,path){let I=await hmac(enc('Bitcoin seed'),seed),k=BigInt('0x'+H(I.slice(0,32))),c=I.slice(32);const master={k,c};
+ for(const[i,h]of path){const d=h?cat(new Uint8Array([0]),U8(hex32(k)),u32(i+0x80000000)):cat(comp(pmul(k,GP)),u32(i));
+  I=await hmac(c,d);k=(BigInt('0x'+H(I.slice(0,32)))+k)%N;c=I.slice(32)}return{master,k,c}}
+const comp=Q=>cat(new Uint8Array([2+Number(Q[1]&1n)]),U8(hex32(Q[0])));
+const addrOf=Q=>H(keccak(U8(hex32(Q[0])+hex32(Q[1]))).slice(12));
+const eip55=a=>{const h=H(keccak(enc(a)));return[...a].map((c,i)=>/[a-f]/.test(c)&&parseInt(h[i],16)>=8?c.toUpperCase():c).join('')};
+
+const $=i=>document.getElementById(i);let mode='m',tm;
+const st=(tag,t,v,d)=>`<div class="out"><span class="pill">${tag}</span> <b>${t}</b><div class="mono" style="margin-top:4px">${v}</div><details><summary class="mut">what happens here</summary><p class="mut">${d}</p></details></div>`;
+function setMode(m){mode=m;$('pm').hidden=m!=='m';$('pk').hidden=m==='m';$('m1').className=m==='m'?'on':'sec';$('m2').className=m==='m'?'sec':'on';derive()}
+$('m1').onclick=()=>setMode('m');$('m2').onclick=()=>setMode('k');
+$('rnd').onclick=()=>{const b=crypto.getRandomValues(new Uint8Array(32));$('kk').value=H(b);derive()};
+async function derive(){const out=$('stages');out.innerHTML='<p class="mut">Computing…</p>';$('warn').textContent='';
+ try{let h='',k;
+  if(mode==='m'){const m=$('mn').value.trim().replace(/\s+/g,' '),w=m.split(' ').length;
+   $('warn').textContent=[12,15,18,21,24].includes(w)?`${w} words. The 2048-word list and the BIP-39 checksum are not validated in this demo.`:`${w} words: BIP-39 expects 12, 15, 18, 21 or 24.`;
+   const seed=await seedOf(m,$('pw').value);
+   h+=st('BIP-39','Mnemonic → 512-bit seed',H(seed),'PBKDF2 with HMAC-SHA512, 2048 iterations, salt = "mnemonic" + passphrase. This is key stretching: deterministic, slow on purpose. A different passphrase gives a completely different wallet.');
+   const a=Math.max(0,parseInt($('ac').value)||0),c=Math.min(1,Math.max(0,parseInt($('ch').value)||0)),x=Math.max(0,parseInt($('ix').value)||0);
+   const r=await bip32(seed,[[44,1],[60,1],[a,1],[c,0],[x,0]]);k=r.k;
+   h+=st('BIP-32','Master key + chain code',`key ${hex32(r.master.k)}<br>chain ${H(r.master.c)}`,'HMAC-SHA512(key "Bitcoin seed", seed): left half = master private key, right half = chain code. Key derivation, not key generation: same seed, same keys.');
+   h+=st('BIP-44',`Child key at m/44'/60'/${a}'/${c}/${x}`,hex32(k),'Each path segment applies a child-key derivation (HMAC-SHA512 with the parent chain code). 44\' = standard, 60\' = Ethereum, then account, change and address index. Apostrophe = hardened.')}
+  else{const s=$('kk').value.trim().replace(/^0x/,'');if(!/^[0-9a-fA-F]{64}$/.test(s))throw Error('need 64 hex characters');k=BigInt('0x'+s);
+   if(k<=0n||k>=N)throw Error('key must be in 1 … n−1');h+=st('generation','Private key (random or chosen)',hex32(k),'Key generation: any number in 1…n−1 is a valid secp256k1 private key. The only requirement is unpredictability (true randomness).')}
+  const Q=pmul(k,GP),pub=hex32(Q[0])+hex32(Q[1]),kh=H(keccak(U8(pub))),ad=kh.slice(24);
+  h+=st('secp256k1','Public key Q = kG',`x ${hex32(Q[0])}<br>y ${hex32(Q[1])}`,'Elliptic-curve scalar multiplication on y² = x³ + 7 over a 256-bit prime, the same operation as in HMWK 1 but with a 256-bit k. One-way thanks to the ECDLP.');
+  h+=st('Keccak-256','Hash of the 64-byte public key',`${kh}<br>last 20 bytes: ${ad}`,'Hashing: x‖y (without the 0x04 prefix) goes through Keccak-256; the last 20 bytes form the address. The hash shortens the key and hides it until the first spend.');
+  h+=st('EIP-55','Checksummed address','0x'+eip55(ad),'Checksum, not encryption: letters are uppercased where the matching nibble of Keccak-256(lowercase address) is ≥ 8. Wallets can detect a typo without changing the underlying 20 bytes.');
+  out.innerHTML=h;$('ea').value='0x'+eip55(ad);eip()}
+ catch(e){out.innerHTML=`<p class="bad">${e.message}</p>`}}
+$('go').onclick=derive;['mn','pw','ac','ch','ix','kk'].forEach(i=>$(i).oninput=()=>{clearTimeout(tm);tm=setTimeout(derive,500)});
+/* hash lab */
+let hb=null;async function hash(){const b=hb||enc($('ht').value),s2=H(new Uint8Array(await subtle.digest('SHA-256',b)));
+ $('hout').innerHTML=`Keccak-256 &nbsp;${H(keccak(b))}<br>SHA3-256 &nbsp;&nbsp;&nbsp;${H(keccak(b,6))} <span class="mut">(same permutation, padding 0x06)</span><br>SHA-256 &nbsp;&nbsp;&nbsp;&nbsp;${s2}`}
+$('ht').oninput=()=>{hb=null;$('grid').innerHTML='';$('hinfo').textContent='';hash()};
+$('flip').onclick=()=>{const b=enc($('ht').value);if(!b.length)return;const c=Uint8Array.from(b),i=Math.floor(Math.random()*c.length),bit=Math.floor(Math.random()*8);c[i]^=1<<bit;
+ const a=keccak(b),d=keccak(c);let n=0,g='';for(let j=0;j<256;j++){const x=((a[j>>3]^d[j>>3])>>(j&7))&1;n+=x;g+=`<i class="${x?'d':''}"></i>`}
+ $('grid').innerHTML=g;$('hinfo').innerHTML=`Flipped bit ${bit} of byte ${i}. <b>${n} of 256</b> output bits changed (${(n/2.56).toFixed(0)}%, ideal ≈ 50%). New Keccak-256: <span class="mono">${H(d).slice(0,16)}…</span>`}
+/* EIP-55 */
+function eip(){const raw=$('ea').value.trim().replace(/^0x/,''),e=$('eout');
+ if(!/^[0-9a-fA-F]{40}$/.test(raw)){e.innerHTML='<span class="bad">Not a 40-hex-digit address.</span>';return}
+ const low=raw.toLowerCase(),ok=eip55(low),L=(low.match(/[a-f]/g)||[]).length;
+ const show=[...ok].map(c=>`<span class="${c!==c.toLowerCase()?'u':''}">${c}</span>`).join('');
+ const st=raw===ok?'<span class="ok">✓ valid EIP-55 checksum</span>':(raw===low||raw===raw.toUpperCase()?'<span class="mut">no checksum (single case): accepted but unprotected</span>':'<span class="bad">✗ checksum mismatch: probable typo</span>');
+ e.innerHTML=`${st}<br><span class="mono ad">Correct form: 0x${show}</span><br><span class="mut">${L} letters → a random typo escapes detection with probability ≈ 2<sup>−${L}</sup> ≈ ${(100*2**-L).toFixed(4)}%</span>`}
+$('ea').oninput=eip;$('fix').onclick=()=>{$('ea').value='0x'+eip55($('ea').value.trim().replace(/^0x/,'').toLowerCase());eip()};
+$('low').onclick=()=>{$('ea').value=$('ea').value.toLowerCase();eip()};
+$('typo').onclick=()=>{let s=$('ea').value.trim().replace(/^0x/,'');if(s.length!==40)return;const i=Math.floor(Math.random()*40),hx='0123456789abcdef';let c;do{c=hx[Math.floor(Math.random()*16)]}while(c===s[i].toLowerCase());
+ if(/[A-F]/.test(s[i]))c=c.toUpperCase();$('ea').value='0x'+s.slice(0,i)+c+s.slice(i+1);eip()};
+/* concepts + timeline */
+const CN={'Key generation':'Producing fresh unpredictable entropy. Here: the random mnemonic entropy or a random private key. Security = randomness.','Key derivation':'Deterministic computation from existing secret material: mnemonic → seed (PBKDF2), seed → child keys (BIP-32). Same input, same output.','Public-key cryptography':'secp256k1: Q = kG is easy, k from Q is the ECDLP. Used to sign transactions, never to hide data here.','Hashing':'Keccak-256: fixed-size digest, avalanche, preimage and collision resistance. Compresses the public key into the address.','Checksum':'EIP-55: redundancy to detect accidental errors. It adds no secrecy and no protection against an attacker.','Encoding':'Representation only: hex, the BIP-39 word list, upper/lower case. Reversible without any key.'};
+$('chips').innerHTML=Object.keys(CN).map(k=>`<button class="sec" data-k="${k}">${k}</button>`).join('');
+$('chips').onclick=e=>{const k=e.target.dataset.k;if(!k)return;[...$('chips').children].forEach(b=>b.className=b.dataset.k===k?'on':'sec');$('cdef').innerHTML=`<b>${k}.</b> ${CN[k]}`};
+$('chips').firstChild.click();
+const TL=[['1977','RSA','First practical public-key cryptosystem, based on integer factoring. Elliptic curves (1985) later gave the same function with far shorter keys.'],['2001','SHA-2 / SHA-512','NIST standard hash family (Merkle–Damgård). SHA-512 is the engine of PBKDF2 and HMAC in BIP-39/32.'],['2012','BIP-32','Hierarchical deterministic wallets: a whole tree of keys from one seed.'],['2013','BIP-39','Mnemonic words for the seed, making backup human-friendly.'],['2014','BIP-44','Multi-account, multi-coin path convention.'],['2015','SHA-3','NIST standardises Keccak (sponge construction). Padding differs from the original Keccak used by Ethereum.'],['2016','EIP-55','Mixed-case checksum for Ethereum addresses, backward-compatible with plain hex.']];
+$('tl').innerHTML=TL.map((t,i)=>`<button data-i="${i}"><b>${t[0]}</b>${t[1]}</button>`).join('');
+$('tl').onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$('tl').children].forEach(x=>x.className='');b.className='on';const t=TL[b.dataset.i];$('tld').innerHTML=`<b>${t[0]} · ${t[1]}.</b> ${t[2]}`};
+$('tl').firstChild.click();
+hash();derive();
+</script></main></body></html>
