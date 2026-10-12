@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HMWK 1 — Private key to public key on a toy elliptic curve</title>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f1e7;--fg:#1e2230;--mut:#625f57;--card:#fffcf5;--bd:#e4dccb;--ac:#0b6b6b;--ac2:#c27a0e;--hi:#b5391c;--btn:#fff;--soft:rgba(11,107,107,.08);--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--serif:Charter,"Iowan Old Style",Georgia,"Times New Roman",serif}
+:root[data-theme="dark"]{--bg:#13161d;--fg:#ece7da;--mut:#a29d90;--card:#1a1e27;--bd:#2f3440;--ac:#4fc0b8;--ac2:#e0a24a;--hi:#ff8f6b;--btn:#0d1a1a;--soft:rgba(79,192,184,.12)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13161d;--fg:#ece7da;--mut:#a29d90;--card:#1a1e27;--bd:#2f3440;--ac:#4fc0b8;--ac2:#e0a24a;--hi:#ff8f6b;--btn:#0d1a1a;--soft:rgba(79,192,184,.12)}}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:920px;margin:0 auto;padding:16px 14px 70px}
+.hero{border-left:6px solid var(--ac);padding:4px 0 6px 20px;margin:14px 0 22px}
+.hero h1{margin:4px 0 8px;font:700 2rem/1.18 var(--serif);letter-spacing:-.01em}.hero p{margin:0;color:var(--mut);max-width:64ch}
+.hero .badge{display:block;color:var(--ac);font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+h2{font:700 1.3rem/1.25 var(--serif);margin:0 0 6px;display:flex;align-items:baseline;gap:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}h2 i{font:italic 700 1.5rem var(--serif);color:var(--ac2);flex:none;min-width:1.1em}
+h3{font-size:.95rem;margin:14px 0 4px}
+p,li{max-width:72ch}.mut{color:var(--mut);font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:18px;margin:14px 0;box-shadow:0 1px 0 var(--bd)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.col{flex:1;min-width:250px}
+label{font-size:.85rem;color:var(--mut)}input,select,textarea,button{font:inherit;padding:7px 11px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--fg)}
+input[type=range]{padding:0;accent-color:var(--ac)}input[type=number]{width:74px}textarea{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:.85rem}
+button{cursor:pointer;background:var(--ac);color:var(--btn);border:0;transition:transform .1s}button:active{transform:scale(.96)}button.sec{background:var(--soft);color:var(--ac);font-weight:600}
+button.on{background:var(--ac);color:var(--btn)}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{border-bottom:1px solid var(--bd);padding:7px 8px;text-align:left;vertical-align:top}th{color:var(--mut);font-weight:600}
+code,.mono{font-family:var(--mono);font-size:.84em}code{background:var(--soft);padding:1px 6px;border-radius:5px}
+.mono{word-break:break-all}svg{max-width:100%;height:auto}
+.hist{display:flex;align-items:flex-end;gap:3px;height:90px;border-bottom:1px solid var(--mut);margin-top:6px}
+.hist div{flex:1;background:var(--ac);min-width:6px;border-radius:3px 3px 0 0}
+.lbl{display:flex;gap:3px;font-size:.62rem;color:var(--mut)}.lbl span{flex:1;text-align:center;min-width:6px}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}.stat div{background:var(--soft);border-radius:10px;padding:10px}.stat b{display:block;font:700 1.35rem var(--serif);color:var(--ac)}.stat span{font-size:.78rem;color:var(--mut)}
+.pill{display:inline-block;font-size:.72rem;padding:1px 9px;border-radius:99px;background:var(--soft);color:var(--ac);font-weight:600}
+.bit{display:inline-block;width:1.3em;text-align:center;border-radius:4px;font-family:var(--mono)}.bit.d{background:var(--hi);color:#fff}
+.out{background:var(--soft);border-radius:10px;padding:10px 12px;margin:8px 0}
+@media print{body{background:#fff}.card{break-inside:avoid;box-shadow:none}button{display:none}}
+
+#plot circle[data-i]{cursor:pointer}#plot circle[data-i]:hover{stroke:var(--hi);stroke-width:2}
+</style></head><body><main>
+<div class="hero"><span class="badge">Homework 1 · Public-key cryptography</span><h1>Private key → public key on a toy elliptic curve</h1>
+<p>Toy curve <code>y² = x³ + 7 (mod 17)</code>. A private key k produces the public key Q = kG. Ethereum uses the same equation over a 256-bit prime (secp256k1).</p></div>
+
+<div class="card"><h2><i>1</i>Scalar multiplication</h2>
+<p class="mut">The base point G is selected by clicking a dot on the plot; k is the multiplier. The path G → 2G → … → kG is drawn on the curve.</p>
+<div class="row"><label>k <input id="kr" type="range" min="1" max="60" value="6"></label><input id="k" type="number" min="1" max="500" value="6">
+<button id="step" class="sec">Step ▶</button><button id="play">Slow animation</button><button id="rst" class="sec">Reset</button></div>
+<p id="info" class="mut"></p>
+<div class="row" style="align-items:flex-start"><div class="col"><svg id="plot" viewBox="0 0 340 340" role="img" aria-label="Points of the curve"></svg></div>
+<div class="col"><div class="scroll" style="max-height:340px;overflow-y:auto"><table id="tab"><thead><tr><th>j</th><th>jG</th><th>operation</th></tr></thead><tbody></tbody></table></div></div></div>
+<h3>Double-and-add (fast method for large k)</h3><div id="dna" class="out mono"></div>
+<h3>TOY PUBLIC KEY</h3><div id="pub" class="out" style="font-size:1.25rem;font-weight:700"></div></div>
+
+<div class="card"><h2><i>2</i>Point-addition lab</h2>
+<p class="mut">Choose two points P and Q to see the addition rule, including doubling and the point at infinity.</p>
+<div class="row"><label>P <select id="pa"></select></label><label>Q <select id="pb"></select></label></div>
+<div id="addout" class="out mono"></div></div>
+
+<div class="card"><h2><i>3</i>Attack it: the ECDLP in miniature</h2>
+<p class="mut">An attacker knows G and Q and wants k. With 17 values brute force is instant; on secp256k1 it is not.</p>
+<div class="row"><button id="atk">Find k from Q by brute force</button></div>
+<div id="atkout" class="out mono"></div></div>
+
+<div class="card"><h2><i>4</i>Statistical exploration</h2>
+<p class="mut">All multiples jG (j = 1 … order−1) of the chosen G. Changing G or k repeats the experiment.</p>
+<div id="stats"></div>
+<h3>Avalanche test: flip one bit of k</h3>
+<div class="row" id="flips"></div><div id="avout" class="out"></div></div>
+
+<div class="card"><h2><i>5</i>Discussion</h2><ul>
+<li><b>Meaningful for a one-way function:</b> determinism and easy forward computation; hardness of inversion (ECDLP — a complexity property, not a statistical one); good dispersion of the points and no obvious linear correlation between k and the coordinates.</li>
+<li><b>Specific to cryptographic hash functions:</b> avalanche effect (1 flipped input bit changes ~50% of the output bits), fixed-size output for arbitrary-length input, collision and second-preimage resistance. Scalar multiplication does <i>not</i> offer these: (k+1)G = kG + G, so neighbouring outputs are linked by a simple algebraic step.</li>
+<li><b>Visible algebraic structure:</b> kG and (n−k)G share x and have opposite y, so every x appears in pairs. A hash has no such symmetry.</li>
+<li>The toy group is tiny, so histograms are noisy and k falls in a few tries. Real security comes only from size (~2²⁵⁶ points).</li></ul></div>
+
+<script>
+const P=17,B=7,$=i=>document.getElementById(i);
+const md=a=>((a%P)+P)%P,inv=a=>{a=md(a);for(let i=1;i<P;i++)if(a*i%P===1)return i};
+function add(A,C){add.k='';if(!A)return C;if(!C)return A;
+ if(A[0]===C[0]&&md(A[1]+C[1])===0){add.k='inf';return null}
+ const d=A[0]===C[0];const l=d?md(3*A[0]*A[0]*inv(2*A[1])):md((C[1]-A[1])*inv(C[0]-A[0]));
+ const x=md(l*l-A[0]-C[0]);add.k=d?'dbl':'add';add.l=l;return[x,md(l*(A[0]-x)-A[1])]}
+const pts=[];for(let x=0;x<P;x++)for(let y=0;y<P;y++)if(y*y%P===(x**3+B)%P)pts.push([x,y]);
+const eq=(a,b)=>a&&b&&a[0]===b[0]&&a[1]===b[1],f=p=>p?`(${p[0]}, ${p[1]})`:'∞';
+function order(G){let Q=G,n=1;while(Q){Q=add(Q,G);n++}return n}
+let gi=pts.findIndex(p=>p[0]===1&&p[1]===5),G,n,k,seq=[],shown=0,timer=null;
+['pa','pb'].forEach((id,j)=>{pts.forEach((p,i)=>$(id).add(new Option(f(p),i)));$(id).value=j?pts.findIndex(p=>p[0]===1&&p[1]===5):0;$(id).onchange=addLab});
+function setup(){clearInterval(timer);G=pts[gi];n=order(G);k=Math.max(1,Math.min(500,parseInt($('k').value)||1));
+ $('kr').value=Math.min(k,60);seq=[];let Q=null;
+ for(let j=1;j<=k;j++){const pv=Q;Q=add(Q,G);seq.push({j,Q,op:j===1?'G':(eq(pv,G)?'double: G + G':'add: '+f(pv)+' + G')})}
+ shown=seq.length;draw();stats();
+ $('info').textContent=`G = ${f(G)} · ${pts.length} affine points + ∞ = ${pts.length+1} group elements · order of G = ${n} · effective k = k mod ${n} = ${k%n}`;
+ let r=null,s=[];const bs=k.toString(2);
+ for(const b of bs){r=add(r,r);s.push(`bit ${b}: double → ${f(r)}`);if(b==='1'){r=add(r,G);s.push(`&nbsp;&nbsp;add G → ${f(r)}`)}}
+ $('dna').innerHTML=`k = ${k} = ${bs}₂ → ${bs.length} doublings instead of ${k} additions<br>`+s.join('<br>')+`<br>= ${f(r)} ${eq(r,seq[k-1].Q)?'✓ matches the linear method':''}`;
+ addLab();atk(true);flips()}
+function draw(){const s=20,o=20;let h='';
+ for(let i=0;i<P;i++)h+=`<text x="${o+i*s}" y="334" font-size="8" text-anchor="middle" fill="var(--mut)">${i}</text><text x="6" y="${o+(P-1-i)*s+3}" font-size="8" fill="var(--mut)">${i}</text>`;
+ h+=`<rect x="${o-9}" y="${o-9}" width="${16*s+18}" height="${16*s+18}" rx="10" fill="var(--soft)" stroke="var(--bd)"/>`;
+ const c=p=>[o+p[0]*s,o+(P-1-p[1])*s];
+ pts.forEach((p,i)=>{const[a,b]=c(p);h+=`<circle data-i="${i}" cx="${a}" cy="${b}" r="${i===gi?6:4}" fill="${i===gi?'var(--ac2)':'var(--mut)'}" opacity="${i===gi?1:.55}"><title>${f(p)}${i===gi?' = G':' — click to use as G'}</title></circle>`});
+ for(let i=0;i<shown;i++){const q=seq[i].Q;if(!q)continue;const[a,b]=c(q);
+  if(i>0&&seq[i-1].Q){const[a0,b0]=c(seq[i-1].Q);h+=`<line x1="${a0}" y1="${b0}" x2="${a}" y2="${b}" stroke="var(--ac)" opacity=".45" stroke-dasharray="3 3"/>`}
+  const L=i===shown-1;h+=`<circle cx="${a}" cy="${b}" r="${L?8:5}" fill="${L?'var(--hi)':'var(--ac)'}" pointer-events="none"/><text x="${a+9}" y="${b-7}" font-size="9" font-weight="700" fill="var(--fg)" pointer-events="none">${seq[i].j}G</text>`}
+ $('plot').innerHTML=h;
+ $('tab').tBodies[0].innerHTML=seq.slice(0,shown).map(r=>`<tr><td>${r.j}</td><td class="mono">${f(r.Q)}</td><td>${r.op}</td></tr>`).join('');
+ const L=seq[shown-1];$('pub').innerHTML=shown?`Q = ${L.j}·G = ${f(L.Q)}`+(shown<seq.length?' <span class="pill">animating…</span>':''):''}
+$('plot').onclick=e=>{const t=e.target.closest('[data-i]');if(t){gi=+t.dataset.i;setup()}};
+function addLab(){const A=pts[+$('pa').value],C=pts[+$('pb').value],R=add(A,C);let t=`P = ${f(A)}, Q = ${f(C)}<br>`;
+ if(add.k==='inf')t+=`Same x, opposite y (Q = −P) → P + Q = ∞ (the group identity)`;
+ else{t+=(add.k==='dbl'?`P = Q → tangent slope λ = 3x²/2y`:`chord slope λ = (y₂−y₁)/(x₂−x₁)`)+` = ${add.l} (mod 17)<br>x₃ = λ² − x₁ − x₂ = ${R[0]}<br>y₃ = λ(x₁ − x₃) − y₁ = ${R[1]}<br><b>P + Q = ${f(R)}</b>`}
+ $('addout').innerHTML=t}
+let atkT;function atk(reset){clearInterval(atkT);const Q=seq[k-1].Q;
+ if(reset){$('atkout').innerHTML=`Target Q = ${f(Q)}. Press the button to run the search.`;return}
+ let j=0,R=null;atkT=setInterval(()=>{j++;R=add(R,G);$('atkout').innerHTML=`trying j = ${j}: ${j}G = ${f(R)}`;
+  if(eq(R,Q)||j>=n){clearInterval(atkT);const yrs=(2**256/1e9/3.156e7).toExponential(1);
+   $('atkout').innerHTML=`Found k ≡ ${j} (mod ${n}) after ${j} tries${j!==k?` (the original k was ${k}: both give the same Q)`:''}.<br>On secp256k1 (~2²⁵⁶ possibilities) at 10⁹ tries/second this would take about ${yrs} years.`}},180)}
+$('atk').onclick=()=>{atk(true);atk(false)};
+function hist(v,l){const c=Array(P).fill(0);v.forEach(a=>c[a]++);const m=Math.max(...c,1);
+ return `<b>${l}</b><div class="hist">${c.map((a,i)=>`<div title="${i}: ${a}" style="height:${a/m*100}%"></div>`).join('')}</div><div class="lbl">${c.map((_,i)=>`<span>${i}</span>`).join('')}</div>`}
+const bits=(v)=>v.toString(2).padStart(5,'0'),ham=(a,b)=>{let d=a^b,c=0;while(d){c+=d&1;d>>=1}return c};
+const corr=(a,b)=>{const m=a.length,ma=a.reduce((s,v)=>s+v)/m,mb=b.reduce((s,v)=>s+v)/m;let u=0,x=0,y=0;for(let i=0;i<m;i++){u+=(a[i]-ma)*(b[i]-mb);x+=(a[i]-ma)**2;y+=(b[i]-mb)**2}return u/Math.sqrt(x*y)};
+let M=[];
+function stats(){M=[];let Q=null;for(let j=1;j<n;j++){Q=add(Q,G);M.push(Q)}
+ const xs=M.map(p=>p[0]),ys=M.map(p=>p[1]),js=M.map((_,i)=>i+1),dx=new Set(xs).size;
+ const bf=[...Array(5).keys()].map(b=>xs.filter(v=>v>>b&1).length/xs.length*100).concat([...Array(5).keys()].map(b=>ys.filter(v=>v>>b&1).length/ys.length*100));
+ let tot=0,cnt=0;for(let j=1;j<n;j++)for(let b=0;b<5;b++){const j2=j^(1<<b);if(j2>=1&&j2<n){tot+=ham(M[j-1][0],M[j2-1][0])+ham(M[j-1][1],M[j2-1][1]);cnt++}}
+ const sc=`<svg viewBox="0 0 340 130" role="img" aria-label="x versus j"><rect x="20" y="4" width="316" height="112" rx="6" fill="var(--soft)"/>${M.map((p,i)=>`<circle cx="${20+(i+.5)/M.length*316}" cy="${116-(p[0]+.5)/P*112}" r="3" fill="var(--ac)"/>`).join('')}<text x="22" y="128" font-size="8" fill="var(--mut)">j → (x on vertical axis)</text></svg>`;
+ $('stats').innerHTML=`<div class="row" style="align-items:flex-start"><div class="col">${hist(xs,'Frequency of x values')}</div><div class="col">${hist(ys,'Frequency of y values')}</div></div>
+ <div class="stat"><div><b>${M.length}</b><span>points analysed</span></div><div><b>${dx}</b><span>distinct x (${M.length/dx>=2?'each x in a ±y pair':'x unique'})</span></div><div><b>${corr(js,xs).toFixed(2)}</b><span>Pearson r (j, x)</span></div><div><b>${corr(js,ys).toFixed(2)}</b><span>Pearson r (j, y)</span></div><div><b>${(tot/cnt).toFixed(2)}/10</b><span>mean avalanche (ideal 5)</span></div></div>
+ <div class="row" style="align-items:flex-start"><div class="col"><b>Bit frequency (% of 1s)</b>${bf.map((v,i)=>`<div class="row" style="gap:6px;flex-wrap:nowrap"><span class="mono" style="width:46px">${i<5?'x':'y'}${i%5}</span><div style="flex:1;background:var(--soft);border-radius:4px;height:10px;position:relative"><div style="width:${v}%;height:10px;border-radius:4px;background:var(--ac2)"></div><div style="position:absolute;left:50%;top:-2px;height:14px;border-left:1px dashed var(--mut)"></div></div><span class="mono" style="width:42px">${v.toFixed(0)}%</span></div>`).join('')}</div><div class="col"><b>Scatter: j versus x</b>${sc}</div></div>`}
+function flips(){$('flips').innerHTML='<label>flip bit of k:</label>'+[0,1,2,3,4,5].map(b=>`<button class="sec" data-b="${b}">${b}</button>`).join('');avl(0)}
+function avl(b){const k2=(k%n||n)^(1<<b),a=M[(k%n||n)-1];const c=(k2>=1&&k2<n)?M[k2-1]:null;
+ const row=(t,p)=>`${t}: ${p?`x=${bits(p[0])} y=${bits(p[1])}`:'—'}`;
+ if(!c){$('avout').innerHTML=`Flipping bit ${b} of k=${k%n||n} gives ${k2}, outside 1…${n-1}. Try another bit.`;return}
+ const d=(x,y)=>[...bits(x)].map((ch,i)=>`<span class="bit ${ch!==bits(y)[i]?'d':''}">${ch}</span>`).join('');
+ const hd=ham(a[0],c[0])+ham(a[1],c[1]);
+ $('avout').innerHTML=`k = ${k%n||n} → ${f(a)} · k′ = ${k2} → ${f(c)}<br>x: ${d(a[0],c[0])} → ${d(c[0],a[0])} &nbsp; y: ${d(a[1],c[1])} → ${d(c[1],a[1])}<br><b>${hd} of 10 output bits changed</b> (a good hash would average 5, here it depends on the algebra).`}
+$('flips').onclick=e=>{if(e.target.dataset.b!==undefined)avl(+e.target.dataset.b)};
+$('kr').oninput=()=>{$('k').value=$('kr').value;setup()};$('k').onchange=setup;
+$('rst').onclick=()=>{clearInterval(timer);shown=0;draw()};
+$('step').onclick=()=>{clearInterval(timer);if(shown>=seq.length)shown=0;shown++;draw()};
+$('play').onclick=()=>{clearInterval(timer);shown=0;draw();timer=setInterval(()=>{shown++;draw();if(shown>=seq.length)clearInterval(timer)},800)};
+setup();
+</script></main></body></html>
