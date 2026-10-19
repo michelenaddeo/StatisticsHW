@@ -40,14 +40,14 @@ td.h{text-align:center;font-variant-numeric:tabular-nums}
 <div class="hero"><span class="badge">Homework 2 · Encryption and cryptanalysis</span><h1>Toy ECC encryption, the Caesar cipher and their attacks</h1>
 <p>One message is encrypted with a toy scheme on secp256k1 and with a Caesar cipher. Both are then attacked: the Caesar cipher with letter statistics, the toy ECC scheme through its restricted private-key space.</p></div>
 
-<div class="card"><h2>Message</h2><p class="mut">The same plaintext is used by both schemes.</p><input id="msg" style="width:100%;box-sizing:border-box" class="mono" value="ATTACK AT DAWN"></div>
+<div class="card"><h2>Message</h2><p class="mut">The same plaintext is used by both schemes.</p><input id="msg" style="width:100%;box-sizing:border-box" class="mono" placeholder="Type the message to encrypt (letters and spaces work best)"></div>
 
 <div class="card"><h2><i>1</i>Toy ECC encryption on secp256k1</h2>
 <p>A hybrid, ElGamal-style scheme (the idea behind ECIES) on the real secp256k1 curve with the generator G of the previous homework. The private key d is restricted to <select id="kb"><option>8</option><option selected>12</option><option>16</option><option>20</option></select> bits so that experiments stay feasible.</p>
 <ul><li><b>Keys.</b> Private key d ∈ [1, 2<sup>b</sup>); public key Q = dG. Q is published, d is secret.</li>
 <li><b>Encryption.</b> Choose a fresh random r and send R = rG. Compute the shared point S = rQ, derive a key stream from Keccak-256(x(S) ‖ counter) and XOR it with the message bytes.</li>
 <li><b>Decryption.</b> The receiver computes S = dR = drG = rQ, rebuilds the same key stream and XORs again. Only the holder of d can do this.</li></ul>
-<div class="row"><label>d <input id="dk" type="number" style="width:110px"></label><button id="nk" class="sec">Random key</button><button id="enc">Encrypt</button><button id="dec" class="sec">Decrypt with d</button></div>
+<div class="row"><label>d <input id="dk" type="number" style="width:130px" placeholder="1 … 2^b"></label><button id="nk" class="sec">Random key</button><button id="enc">Encrypt</button><button id="dec" class="sec">Decrypt with d</button></div>
 <div id="eo" class="out mono"></div></div>
 
 <div class="card"><h2><i>2</i>Caesar cipher</h2>
@@ -76,7 +76,7 @@ td.h{text-align:center;font-variant-numeric:tabular-nums}
 <li>For every candidate key s from 0 to 25, decrypt the ciphertext.</li>
 <li>Score each candidate: χ² = Σ (O<sub>i</sub> − E<sub>i</sub>)² / E<sub>i</sub> with E<sub>i</sub> = n·f<sub>i</sub> (lower is better), or a bigram log-likelihood (higher is better), or the number of common English words found (exhaustive search + dictionary).</li>
 <li>Return the best-scoring key.</li></ol>
-<details><summary>Training corpus and reference (editable)</summary><textarea id="corp" rows="8"></textarea>
+<details><summary>Training corpus and reference (editable)</summary><textarea id="corp" rows="8" placeholder="Left empty, the built-in English sample (about 2,000 characters) is used. Paste a longer text to retrain the model."></textarea>
 <label>Reference <select id="ref"><option value="c">trained on the corpus</option><option value="s">standard English table</option></select></label>
 <p class="mut">The first 70% of the text trains the model; test ciphertexts are cut from the last 30%, so the model never sees them.</p></details>
 <div class="row" style="margin-top:8px"><label>Ciphertext length <input id="sl" type="range" min="10" max="320" value="80"></label><b id="slv">80</b><button id="ns">New random ciphertext</button></div>
@@ -156,23 +156,24 @@ function eEnc(m,Qp){let r=BigInt('0x'+H(crypto.getRandomValues(new Uint8Array(32
 const eDec=(R,c,d)=>{const S=pmul(d,R),k=ks(S,c.length);return{S,p:c.map((b,i)=>b^k[i])}};
 const txt=b=>new TextDecoder().decode(b);
 function upd(){const b=+$('kb').value,d=BigInt(Math.floor(+$('dk').value||0));CT=null;
+ if(!$('dk').value){Q=null;D=null;$('eo').innerHTML='Type a private key d, or press “Random key”.';scale();st();return}
  if(d<1n||d>=2n**BigInt(b)){Q=null;D=null;$('eo').innerHTML=`<span class="bad">d must satisfy 1 ≤ d &lt; 2^${b}.</span>`;return}
  D=d;Q=pmul(D,GP);$('eo').innerHTML=`private key d = ${D} (${D.toString(2).length} bits, restricted to ${b})<br>public key Q = dG = ${pub(Q)}`;scale();st()}
 function newKey(){const b=+$('kb').value;$('dk').value=1+crypto.getRandomValues(new Uint32Array(1))[0]%(2**b-1);upd()}
-$('nk').onclick=newKey;$('kb').onchange=newKey;$('dk').onchange=upd;
-$('enc').onclick=()=>{if(!Q)return;const m=enc($('msg').value),e=eEnc(m,Q);CT={R:e.R,c:e.c};
+$('nk').onclick=newKey;$('kb').onchange=upd;$('dk').onchange=upd;
+$('enc').onclick=()=>{if(!Q){$('eo').innerHTML='<span class="bad">Choose a private key first.</span>';return}if(!$('msg').value){$('eo').innerHTML='<span class="bad">Type a message at the top first.</span>';return}const m=enc($('msg').value),e=eEnc(m,Q);CT={R:e.R,c:e.c};
  $('eo').innerHTML=`public key Q = ${pub(Q)}<br>1. random r → R = rG = ${pub(e.R)}<br>2. S = rQ, x(S) = ${hex32(e.S[0]).slice(0,24)}…<br>3. key stream = Keccak-256(x(S) ‖ i) = ${H(ks(e.S,m.length))}<br>4. ciphertext = message ⊕ key stream = <b>${H(e.c)}</b><br>sent: (R, ciphertext)`};
 $('dec').onclick=()=>{if(!CT||!D){$('eo').innerHTML+='<br><span class="bad">Encrypt a message first.</span>';return}
  const r=eDec(CT.R,CT.c,D);$('eo').innerHTML+=`<br><br>5. S′ = dR, x(S′) = ${hex32(r.S[0]).slice(0,24)}… (equal to x(S))<br>6. ciphertext ⊕ key stream → <b>${txt(r.p)}</b>`};
 /* ---------- Caesar ---------- */
 function cz(){const s=+$('cs').value;$('csv').textContent=s;$('t1').innerHTML=[...AZ].map(c=>`<span>${c}</span>`).join('');$('t2').innerHTML=[...AZ].map(c=>`<span style="background:var(--soft);color:var(--ac)">${caesar(c,s)}</span>`).join('');
- const m=$('msg').value,c=caesar(m,s);$('co').innerHTML=`plaintext &nbsp;&nbsp;&nbsp;&nbsp;${m}<br>encrypt (+${s}) → ${c}<br>decrypt (−${s}) → ${caesar(c,-s)}`}
+ const m=$('msg').value;if(!m){$('co').innerHTML='Type a message at the top to see it encrypted and decrypted.';return}const c=caesar(m,s);$('co').innerHTML=`plaintext &nbsp;&nbsp;&nbsp;&nbsp;${m}<br>encrypt (+${s}) → ${c}<br>decrypt (−${s}) → ${caesar(c,-s)}`}
 $('cs').oninput=()=>{cz();st()};$('msg').oninput=cz;
 /* ---------- statistics ---------- */
 const ic=(v,n)=>v.reduce((s,x)=>s+x*(x-1),0)/(n*(n-1)),ent=(v,n)=>-v.reduce((s,x)=>s+(x?x/n*Math.log2(x/n):0),0);
-function st(){if(!Q)return;const L=clean(TXT),pc=Array(26).fill(0);for(const c of L)pc[A(c)]++;
+function st(){if(!Q){$('so').innerHTML='<p class="mut">Choose a private key in section 1 to compute the statistics.</p>';return}const T0=corpus(),L=clean(T0),pc=Array(26).fill(0);for(const c of L)pc[A(c)]++;
  const s=+$('cs').value,cc=Array(26).fill(0);pc.forEach((v,i)=>cc[(i+s)%26]=v);
- const e=eEnc(enc(TXT),Q),bc=Array(256).fill(0);e.c.forEach(b=>bc[b]++);const bins=Array(32).fill(0);bc.forEach((v,i)=>bins[i>>3]+=v);
+ const e=eEnc(enc(T0),Q),bc=Array(256).fill(0);e.c.forEach(b=>bc[b]++);const bins=Array(32).fill(0);bc.forEach((v,i)=>bins[i>>3]+=v);
  const lab=[...AZ],bl=bins.map((_,i)=>i%4?'':i*8);
  $('so').innerHTML=`<div class="row" style="align-items:flex-start"><div class="col"><b>Caesar ciphertext: letter counts</b>${bars(cc,lab)}</div><div class="col"><b>ECC ciphertext: byte values (32 bins of 8)</b>${bars(bins,bl)}</div></div>
  <div class="scroll"><table><tr><th></th><th>Index of coincidence</th><th>Entropy (bits/symbol)</th></tr>
@@ -182,8 +183,9 @@ function st(){if(!Q)return;const L=clean(TXT),pc=Array(26).fill(0);for(const c o
  <p class="mut">Caesar leaves both measures untouched: only the labels move. For the ECC ciphertext the index of coincidence is close to the uniform value 1/256 ≈ 0.0039 and the entropy close to the maximum (a sample of ${e.c.length} bytes cannot reach exactly 8 bits).</p>`}
 $('st').onclick=st;
 /* ---------- Caesar cryptanalysis ---------- */
-$('corp').value=TXT;let TR;
-function train(){const t=$('corp').value,cut=Math.floor(t.length*.7),L=clean(t.slice(0,cut)),cnt=Array(26).fill(0);for(const c of L)cnt[A(c)]++;
+let TR;
+const corpus=()=>$('corp').value.trim()||TXT;
+function train(){const t=corpus(),cut=Math.floor(t.length*.7),L=clean(t.slice(0,cut)),cnt=Array(26).fill(0);for(const c of L)cnt[A(c)]++;
  let f=cnt.map(c=>(c+.5)/(L.length+13));if($('ref').value==='s'){const z=STD.reduce((a,b)=>a+b);f=STD.map(x=>x/z)}
  const bg=Array.from({length:26},()=>Array(26).fill(1));for(let i=0;i+1<L.length;i++)bg[A(L[i])][A(L[i+1])]++;const tot=bg.flat().reduce((a,b)=>a+b);
  return{f,lp:bg.map(r=>r.map(v=>Math.log(v/tot))),te:t.slice(cut)}}
@@ -207,10 +209,10 @@ function finish(name,d,ops,t0){const ms=performance.now()-t0,ok=Q&&d&&pmul(BigIn
  let h=`${name==='brute'?'Exhaustive search':'Baby-step giant-step'}: ${ok?`found d = <b>${d}</b>`:'<span class="bad">not found</span>'} after ${ops} group operations in ${ms.toFixed(0)} ms (${ok&&String(d)===String(D)?'matches the real key':'check key'})`;
  if(ok&&CT){const r=eDec(CT.R,CT.c,BigInt(d));h+=`<br>Decrypting the intercepted ciphertext with the recovered key: <b>${txt(r.p)}</b>`}
  $('ao').innerHTML=h;scale()}
-$('b1').onclick=()=>{if(!Q)return;const b=+$('kb').value,max=2**b-1,t0=performance.now();let P=GP,j=1,ops=0;
+$('b1').onclick=()=>{if(!Q){$('ao').innerHTML='<span class="bad">Choose a private key in section 1 first.</span>';return}const b=+$('kb').value,max=2**b-1,t0=performance.now();let P=GP,j=1,ops=0;
  (function ch(){const e=Math.min(max,j+199);for(;j<=e;j++){ops++;if(P[0]===Q[0]&&P[1]===Q[1]){finish('brute',j,ops,t0);return}P=padd(P,GP)}
   if(j<=max){$('ao').innerHTML=`Exhaustive search: tried ${ops} of ${max} candidates<div class="bar"><div style="width:${ops/max*100}%"></div></div>`;setTimeout(ch,0)}else finish('brute',0,ops,t0)})()};
-$('b2').onclick=()=>{if(!Q)return;const b=+$('kb').value,m=Math.ceil(Math.sqrt(2**b)),t0=performance.now(),T=new Map();let P=null,ops=0;
+$('b2').onclick=()=>{if(!Q){$('ao').innerHTML='<span class="bad">Choose a private key in section 1 first.</span>';return}const b=+$('kb').value,m=Math.ceil(Math.sqrt(2**b)),t0=performance.now(),T=new Map();let P=null,ops=0;
  for(let j=0;j<m;j++){T.set(P?P[0]+':'+P[1]:'inf',j);P=padd(P,GP);ops++}
  const neg=[P[0],p-P[1]];let X=Q;for(let i=0;i<=m;i++){const k=X?X[0]+':'+X[1]:'inf';if(T.has(k)){const d=i*m+T.get(k);if(d>0){finish('bsgs',d,ops,t0);return}}X=padd(X,neg);ops++}
  finish('bsgs',0,ops,t0)};
@@ -218,5 +220,5 @@ function scale(){$('rate').innerHTML=`This browser performs about ${Math.round(R
  $('sc').innerHTML='<tr><th>Key bits</th><th>Exhaustive search (average ops)</th><th>… time at this speed</th><th>BSGS (ops ≈ 2·2<sup>b/2</sup>)</th><th>BSGS time at 10⁹ ops/s</th></tr>'+[16,32,64,128,256].map(b=>`<tr><td>${b}</td><td>2<sup>${b-1}</sup></td><td>${ft(2**(b-1)/RATE)}</td><td>2<sup>${b/2+1}</sup></td><td>${ft(2**(b/2+1)/1e9)}</td></tr>`).join('')}
 /* ---------- init ---------- */
 {let P=GP;const t0=performance.now();for(let i=0;i<150;i++)P=padd(P,GP);RATE=150/Math.max(performance.now()-t0,1)*1000}
-cz();newKey();sample();
+cz();upd();sample();
 </script></main></body></html>
