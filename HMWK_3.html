@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HMWK — Aggregate penetration scores: LLN and CLT</title>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f1e7;--fg:#1e2230;--mut:#625f57;--card:#fffcf5;--bd:#e4dccb;--ac:#0b6b6b;--ac2:#c27a0e;--hi:#b5391c;--btn:#fff;--soft:rgba(11,107,107,.08);--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--serif:Charter,"Iowan Old Style",Georgia,"Times New Roman",serif}
+:root[data-theme="dark"]{--bg:#13161d;--fg:#ece7da;--mut:#a29d90;--card:#1a1e27;--bd:#2f3440;--ac:#4fc0b8;--ac2:#e0a24a;--hi:#ff8f6b;--btn:#0d1a1a;--soft:rgba(79,192,184,.12)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13161d;--fg:#ece7da;--mut:#a29d90;--card:#1a1e27;--bd:#2f3440;--ac:#4fc0b8;--ac2:#e0a24a;--hi:#ff8f6b;--btn:#0d1a1a;--soft:rgba(79,192,184,.12)}}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:920px;margin:0 auto;padding:16px 14px 70px}
+.hero{border-left:6px solid var(--ac);padding:4px 0 6px 20px;margin:14px 0 22px}
+.hero h1{margin:4px 0 8px;font:700 2rem/1.18 var(--serif);letter-spacing:-.01em}.hero p{margin:0;color:var(--mut);max-width:64ch}
+.hero .badge{display:block;color:var(--ac);font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+h2{font:700 1.3rem/1.25 var(--serif);margin:0 0 6px;display:flex;align-items:baseline;gap:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}h2 i{font:italic 700 1.5rem var(--serif);color:var(--ac2);flex:none;min-width:1.1em}
+h3{font-size:.95rem;margin:14px 0 4px}
+p,li{max-width:72ch}.mut{color:var(--mut);font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:18px;margin:14px 0;box-shadow:0 1px 0 var(--bd)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.col{flex:1;min-width:250px}
+label{font-size:.85rem;color:var(--mut)}input,select,textarea,button{font:inherit;padding:7px 11px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--fg)}
+input[type=range]{padding:0;accent-color:var(--ac)}input[type=number]{width:74px}textarea{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:.85rem}
+button{cursor:pointer;background:var(--ac);color:var(--btn);border:0;transition:transform .1s}button:active{transform:scale(.96)}button.sec{background:var(--soft);color:var(--ac);font-weight:600}
+button.on{background:var(--ac);color:var(--btn)}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{border-bottom:1px solid var(--bd);padding:7px 8px;text-align:left;vertical-align:top}th{color:var(--mut);font-weight:600}
+code,.mono{font-family:var(--mono);font-size:.84em}code{background:var(--soft);padding:1px 6px;border-radius:5px}
+.mono{word-break:break-all}svg{max-width:100%;height:auto}
+.hist{display:flex;align-items:flex-end;gap:3px;height:90px;border-bottom:1px solid var(--mut);margin-top:6px}
+.hist div{flex:1;background:var(--ac);min-width:6px;border-radius:3px 3px 0 0}
+.lbl{display:flex;gap:3px;font-size:.62rem;color:var(--mut)}.lbl span{flex:1;text-align:center;min-width:6px}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}.stat div{background:var(--soft);border-radius:10px;padding:10px}.stat b{display:block;font:700 1.35rem var(--serif);color:var(--ac)}.stat span{font-size:.78rem;color:var(--mut)}
+.pill{display:inline-block;font-size:.72rem;padding:1px 9px;border-radius:99px;background:var(--soft);color:var(--ac);font-weight:600}
+.bit{display:inline-block;width:1.3em;text-align:center;border-radius:4px;font-family:var(--mono)}.bit.d{background:var(--hi);color:#fff}
+.out{background:var(--soft);border-radius:10px;padding:10px 12px;margin:8px 0}
+@media print{body{background:#fff}.card{break-inside:avoid;box-shadow:none}button{display:none}}
+
+
+:root{--c1:#7c3aed;--c2:#06b6d4;--c3:#f97316;--c4:#ec4899;--c5:#22c55e}
+.hero{border:0;border-radius:18px;padding:26px 24px;background:linear-gradient(120deg,#6d28d9,#db2777,#f59e0b,#06b6d4,#6d28d9);background-size:300% 300%;animation:shift 14s ease infinite;box-shadow:0 14px 34px -14px #7c3aed}
+.hero h1,.hero p{color:#fff}.hero p{opacity:.93}.hero .badge{display:inline-block;color:#fff;background:rgba(255,255,255,.22);padding:2px 12px;border-radius:99px}
+@keyframes shift{50%{background-position:100% 50%}}
+.card{border-top:4px solid var(--cc,var(--bd));border-radius:10px;animation:rise .6s both}@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+h2 i{color:var(--cc,var(--ac2))}
+button{background:linear-gradient(135deg,var(--c1),var(--c4));color:#fff;transition:transform .15s,box-shadow .15s}button:hover{transform:translateY(-1px);box-shadow:0 6px 14px -6px var(--c1)}button.sec{background:var(--soft);color:var(--c1)}
+td.h{text-align:center;font-variant-numeric:tabular-nums}.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.leg span{display:inline-block;margin-right:14px;font-size:.85rem}.leg i{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.ok{color:var(--c5);font-weight:700}.bad{color:var(--c3);font-weight:700}
+svg text{font-family:var(--mono);font-size:9px;fill:var(--mut)}
+.pb{height:6px;border-radius:3px;background:var(--soft);margin-top:3px;overflow:hidden}.pb i{display:block;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--c2),var(--c4));transition:width .6s}
+.take{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.take div{border-left:5px solid var(--tc);background:var(--soft);border-radius:8px;padding:10px 12px;font-size:.92rem}.take b{color:var(--tc)}
+.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.8s ease forwards}@keyframes draw{to{stroke-dashoffset:0}}
+.pt{opacity:0;animation:fade .5s 1.6s forwards}@keyframes fade{to{opacity:1}}
+.big{font:800 2rem var(--serif);background:linear-gradient(90deg,var(--c1),var(--c3));-webkit-background-clip:text;background-clip:text;color:transparent}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.draw{stroke-dashoffset:0}.pt{opacity:1}}
+</style></head><body><main>
+<div class="hero"><span class="badge">Homework · Probability and statistics</span><h1>Aggregate penetration scores</h1>
+<p>m attackers face n systems, one after another. Each attacker earns an i.i.d. score X<sub>i</sub> on system i. Watch the total, the average and the normalised total evolve as n grows.</p></div>
+
+<div class="card" style="--cc:var(--c1)"><h2>Simulation setup</h2>
+<div class="row"><label>Model <select id="mod"><option value="b">Bernoulli {0,1}</option><option value="r">Rademacher {−1,+1}</option></select></label>
+<label>p <input id="p" type="range" min="0.05" max="0.95" step="0.05" value="0.3"></label><b id="pv">0.30</b>
+<label>Attackers m <select id="m"><option>100</option><option>300</option><option selected>1000</option><option>3000</option><option>5000</option></select></label>
+<label>Systems n <select id="n"><option>10</option><option>30</option><option>100</option><option>300</option><option selected>1000</option><option>3000</option><option>10000</option></select></label></div>
+<div class="row" style="margin-top:8px"><label>ε (LLN) <input id="eps" type="range" min="0.01" max="0.3" step="0.01" value="0.05"></label><b id="ev">0.05</b>
+<label><input type="checkbox" id="cen"> centre S<sub>n</sub>/√n by nμ</label><button id="go">New simulation</button></div>
+<p id="params" class="mut"></p></div>
+
+<div class="card" style="--cc:var(--c2)"><h2><i>1</i>Model</h2>
+<ul><li><b>Bernoulli:</b> X<sub>i</sub> = 1 if system i is penetrated (probability p), else 0. μ = p, σ² = p(1−p). S<sub>n</sub> = compromised systems, S<sub>n</sub>/n = penetration rate.</li>
+<li><b>Rademacher:</b> X<sub>i</sub> = ±1 with probability ½ (a fair balance of successes and failures). μ = 0, σ² = 1.</li>
+<li>The m attackers are m independent copies of the process; E[S<sub>n</sub>] = nμ and Var(S<sub>n</sub>) = nσ².</li></ul></div>
+
+<div class="card" style="--cc:var(--c4)"><h2><i>2</i>Sample trajectories</h2>
+<div class="tabs"><button id="tv0">Total S<sub>k</sub></button><button id="tv1" class="sec">Average S<sub>k</sub>/k</button><button id="tv2" class="sec">Normalised S<sub>k</sub>/√k</button><button id="rp" class="sec">↻ Replay</button></div>
+<div id="tr"></div><p id="trc" class="mut"></p></div>
+
+<div class="card" style="--cc:var(--c3)"><h2><i>3</i>Watch n grow</h2>
+<div class="row"><button id="grow">▶ Grow n</button><span>n = <span class="big" id="nbig">1000</span></span><span class="mut">m = <b id="mbig"></b> attackers</span></div>
+<div class="row" style="align-items:flex-start"><div class="col"><b>S<sub>n</sub></b><div id="h1"></div></div><div class="col"><b>S<sub>n</sub>/n</b> <span class="mut">(fixed window μ ± σ)</span><div id="h2"></div></div><div class="col"><b>S<sub>n</sub>/√n</b><div id="h3"></div></div></div>
+<p class="mut">Bars: simulated attackers. Line: normal approximation. S<sub>n</sub> and S<sub>n</sub>/√n have the same shape but different scales: the spread of S<sub>n</sub> grows with n, that of S<sub>n</sub>/√n stays fixed, while S<sub>n</sub>/n collapses onto μ.</p>
+<div class="scroll"><table id="st"></table></div></div>
+
+<div class="card" style="--cc:var(--c5)"><h2><i>4</i>Results as n increases</h2>
+<h3>Variances</h3>
+<div id="ch"></div><div class="leg"><span><i style="background:var(--c1)"></i>Var(S<sub>n</sub>)</span><span><i style="background:var(--c2)"></i>Var(S<sub>n</sub>/n)</span><span><i style="background:var(--c3)"></i>Var(S<sub>n</sub>/√n)</span><span>dashed = theory</span></div>
+<div class="scroll"><table id="t1"></table></div>
+<h3>Law of large numbers: P(|S<sub>n</sub>/n − μ| &gt; ε)</h3><div class="scroll"><table id="t2"></table></div>
+<h3>Central limit theorem: distance from N(0,1)</h3>
+<p class="mut">Z<sub>n</sub> = (S<sub>n</sub> − nμ)/(σ√n), equal to S<sub>n</sub>/√n for Rademacher. D<sub>n</sub> = Kolmogorov–Smirnov distance from Φ.</p><div class="scroll"><table id="t3"></table></div></div>
+
+<div class="card" style="--cc:var(--c1)"><h2><i>5</i>Take-aways</h2>
+<div class="take">
+<div style="--tc:var(--c2)"><b>Law of large numbers.</b> The average S<sub>n</sub>/n funnels to μ: the probability of missing μ by more than ε goes to 0 (Chebyshev: ≤ σ²/(nε²)).</div>
+<div style="--tc:var(--c1)"><b>Variances.</b> nσ² grows, σ²/n shrinks, σ² stays constant: only the √n scaling gives a stable limit.</div>
+<div style="--tc:var(--c3)"><b>Central limit theorem.</b> S<sub>n</sub>/√n → N(0,1) in distribution (Rademacher; Bernoulli after centring), although each single path keeps wandering. With discrete steps D<sub>n</sub> cannot drop below the lattice jump (~1/√n).</div>
+<div style="--tc:var(--c4)"><b>Systems and attackers.</b> More systems: the penetration rate becomes predictable. More attackers: a clearer distribution and a more extreme best attacker, about nμ + σ√(2n ln m).</div></div></div>
+
+<script>
+const $=i=>document.getElementById(i);
+const CK=[10,30,100,300,1000,3000,10000],NM=10000,KP=25,RM=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const g=x=>{const a=Math.abs(x);return a>=1e5||(a<1e-3&&a>0)?x.toExponential(1):+x.toPrecision(3)+''};
+function erf(x){const t=1/(1+.3275911*Math.abs(x)),y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return x>=0?y:-y}
+const Phi=z=>.5*(1+erf(z/Math.SQRT2));
+let SIM=null,V=0,TA=0,PA=0,CUR=null,SPEC=null,GT=null;
+function simulate(){const m=+$('m').value,rad=$('mod').value==='r',p=rad?.5:+$('p').value,SN=CK.map(()=>new Float64Array(m)),paths=[];
+ for(let j=0;j<m;j++){let s=0,ci=0;const keep=j<KP,pa=keep?new Int16Array(NM+1):null;
+  for(let k=1;k<=NM;k++){s+=rad?(Math.random()<.5?1:-1):(Math.random()<p?1:0);if(keep)pa[k]=s;if(k===CK[ci]){SN[ci][j]=s;ci++}}
+  if(keep)paths.push(pa)}
+ SIM={m,rad,p,mu:rad?0:p,sg2:rad?1:p*(1-p),SN,paths,R:null,chart:0};render(true)}
+function render(anim){if(!SIM)return;$('params').innerHTML=`${SIM.rad?'Rademacher':'Bernoulli (p = '+SIM.p.toFixed(2)+')'}: μ = ${g(SIM.mu)}, σ² = ${g(SIM.sg2)}. ${SIM.m} attackers, 10 000 systems each; every n is a checkpoint of the same trajectories.`;$('mbig').textContent=SIM.m;traj(anim);dist();tables()}
+/* ---- animated trajectories ---- */
+const CAP=['Total score: the cloud fans out like √k around the mean line kμ (dashed), inside the ±2σ√k band.','Average score: the paths funnel into μ (dashed): the band ±2σ/√k closes. This is the law of large numbers.','Normalised score: constant width (±2σ band). Every path keeps fluctuating: convergence in distribution, not in probability.'];
+function traj(anim){cancelAnimationFrame(TA);const n=+$('n').value,{mu,sg2,paths}=SIM,sg=Math.sqrt(sg2),cen=$('cen').checked,K=[],L=Math.log10(n);let last=0;
+ for(let i=0;i<=150;i++){const k=Math.max(1,Math.round(10**(L*i/150)));if(k!==last){K.push(k);last=k}}
+ const val=(s,k)=>V==0?s:V==1?s/k:(cen?(s-k*mu)/Math.sqrt(k):s/Math.sqrt(k)),mid=k=>V==0?k*mu:V==1?mu:(cen?0:mu*Math.sqrt(k)),bd=k=>2*sg*(V==0?Math.sqrt(k):V==1?1/Math.sqrt(k):1);
+ let lo=1e9,hi=-1e9;K.forEach(k=>{lo=Math.min(lo,mid(k)-bd(k));hi=Math.max(hi,mid(k)+bd(k));paths.forEach(p=>{const v=val(p[k],k);lo=Math.min(lo,v);hi=Math.max(hi,v)})});
+ const W=640,H=300,ml=46,mr=10,mt=10,mb=26,X=k=>ml+Math.log10(k)/L*(W-ml-mr),Y=v=>mt+(hi-v)/(hi-lo)*(H-mt-mb);
+ let base=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sample trajectories"><rect x="${ml}" y="${mt}" width="${W-ml-mr}" height="${H-mt-mb}" fill="none" stroke="var(--bd)"/>`;
+ for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4;base+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--bd)" stroke-dasharray="2 3"/><text x="${ml-4}" y="${Y(v)+3}" text-anchor="end">${g(v)}</text>`}
+ const xt=[1,10,100,1000,10000].filter(t=>t<=n);if(!xt.includes(n))xt.push(n);xt.forEach(t=>base+=`<text x="${X(t)}" y="${H-10}" text-anchor="middle">${t}</text>`);
+ base+=`<text x="${W/2}" y="${H-1}" text-anchor="middle">k (systems attacked, log scale)</text><clipPath id="cp"><rect x="${ml}" y="${mt}" width="${W-ml-mr}" height="${H-mt-mb}"/></clipPath><g clip-path="url(#cp)">`;
+ const col=i=>`hsl(${i*14.4} 85% 52%)`;
+ const draw=pr=>{const km=Math.max(1,Math.round(n**pr)),Kv=K.filter(k=>k<=km);if(Kv[Kv.length-1]<km)Kv.push(km);
+  let s=base+`<polygon points="${Kv.map(k=>`${X(k)},${Y(mid(k)+bd(k))}`).join(' ')} ${Kv.slice().reverse().map(k=>`${X(k)},${Y(mid(k)-bd(k))}`).join(' ')}" fill="var(--soft)"/>`;
+  paths.forEach((p,i)=>s+=`<polyline fill="none" stroke="${col(i)}" stroke-width="${i?1.4:2.6}" opacity=".85" points="${Kv.map(k=>`${X(k)},${Y(val(p[k],k))}`).join(' ')}"/>`);
+  s+=`<polyline fill="none" stroke="var(--fg)" stroke-dasharray="5 4" points="${Kv.map(k=>`${X(k)},${Y(mid(k))}`).join(' ')}"/>`;
+  paths.forEach((p,i)=>s+=`<circle cx="${X(km)}" cy="${Y(val(p[km],km))}" r="${i?3:4.5}" fill="${col(i)}" stroke="var(--card)"/>`);
+  $('tr').innerHTML=s+`</g><text x="${W-mr-4}" y="${mt+14}" text-anchor="end" style="font-size:13px;fill:var(--fg)">k = ${km}</text></svg>`};
+ $('trc').textContent=CAP[V]+' Each colour is one attacker.';
+ if(!anim||RM){draw(1);return}const t0=performance.now();
+ const step=t=>{const u=Math.min(1,(t-t0)/2800);draw(1-(1-u)**2);if(u<1)TA=requestAnimationFrame(step)};TA=requestAnimationFrame(step)}
+[0,1,2].forEach(v=>$('tv'+v).onclick=()=>{V=v;[0,1,2].forEach(u=>$('tv'+u).className=u===v?'':'sec');traj(true)});$('rp').onclick=()=>traj(true);
+/* ---- animated histograms ---- */
+function spec(n){const S=SIM.SN[CK.indexOf(n)],{m,mu,sg2,rad}=SIM,sg=Math.sqrt(sg2),cen=$('cen').checked,s0=rad?2:1,o=rad?n%2:0,sn=Math.sqrt(n);
+ const mk=(lo,hi)=>{const bw=s0*Math.max(1,Math.ceil((hi-lo)/s0/41)),a=o+s0*Math.floor((lo-o)/s0)-s0/2,nb=Math.ceil((hi-a)/bw),c=new Array(nb).fill(0);for(const s of S){const i=Math.floor((s-a)/bw);if(i>=0&&i<nb)c[i]++}return{a,bw,nb,c}};
+ const w1=mk(n*mu-4*sg*sn,n*mu+4*sg*sn),w2=mk(n*(mu-sg),n*(mu+sg)),t3=cen?x=>(x-n*mu)/sn:x=>x/sn;
+ return[{...w1,tr:x=>x,mu:n*mu,sd:sg*sn,h:258},{...w2,tr:x=>x/n,mu,sd:sg/sn,h:175},{...w1,tr:t3,mu:cen?0:mu*sn,sd:sg,h:20}].map(p=>{
+  p.ex=p.c.map((_,i)=>{const x0=p.tr(p.a+i*p.bw),x1=p.tr(p.a+(i+1)*p.bw);return[(x0+x1)/2,m*(Phi((x1-p.mu)/p.sd)-Phi((x0-p.mu)/p.sd))]});
+  p.ym=Math.max(...p.c,...p.ex.map(e=>e[1]),1)*1.12;return p})}
+function panel(p,cur){const nb=p.nb,xa=p.tr(p.a),xb=p.tr(p.a+nb*p.bw),W=320,H=210,ml=10,mb=30,mt=12,pw=W-2*ml,ph=H-mb-mt,X=x=>ml+(x-xa)/(xb-xa)*pw,Y=v=>mt+ph-v/p.ym*ph;
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Histogram">`;
+ for(let i=0;i<nb;i++){const x0=X(p.tr(p.a+i*p.bw)),x1=X(p.tr(p.a+(i+1)*p.bw));s+=`<rect x="${x0+.5}" y="${Y(cur[i])}" width="${Math.max(.8,x1-x0-1)}" height="${mt+ph-Y(cur[i])}" rx="2" fill="hsl(${p.h+i/nb*50} 82% 56%)"/>`}
+ s+=`<polyline fill="none" stroke="var(--fg)" stroke-width="2" opacity=".75" points="${p.ex.map(e=>`${X(e[0])},${Y(e[1])}`).join(' ')}"/><line x1="${ml}" x2="${W-ml}" y1="${mt+ph}" y2="${mt+ph}" stroke="var(--mut)"/>`;
+ [[xa,'start'],[p.mu,'middle'],[xb,'end']].forEach(t=>{const x=Math.min(W-ml,Math.max(ml,X(t[0])));s+=`<text x="${x}" y="${H-14}" text-anchor="${t[1]}">${g(t[0])}</text>`});return s+'</svg>'}
+const paint=()=>SPEC.forEach((p,k)=>$('h'+(k+1)).innerHTML=panel(p,CUR[k]));
+function dist(){const n=+$('n').value,S=SIM.SN[CK.indexOf(n)],{m,mu,sg2}=SIM,cen=$('cen').checked;SPEC=spec(n);$('nbig').textContent=n;
+ if(!CUR||CUR.some((c,k)=>c.length!==SPEC[k].nb))CUR=SPEC.map(p=>new Array(p.nb).fill(0));
+ let a=0,mn=1e9,mx=-1e9;for(const s of S){a+=s;if(s<mn)mn=s;if(s>mx)mx=s}a/=m;let v=0;for(const s of S)v+=(s-a)**2;v/=m-1;const sg=Math.sqrt(sg2),sn=Math.sqrt(n),t3=x=>cen?(x-n*mu)/sn:x/sn,ex=sg*Math.sqrt(2*n*Math.log(m));
+ $('st').innerHTML=`<tr><th>n = ${n}</th><th>Empirical mean</th><th>Theory</th><th>Empirical variance</th><th>Theory</th></tr>
+ <tr><td>S<sub>n</sub></td><td class="h">${g(a)}</td><td class="h">${g(n*mu)}</td><td class="h">${g(v)}</td><td class="h">${g(n*sg2)}</td></tr>
+ <tr><td>S<sub>n</sub>/n</td><td class="h">${g(a/n)}</td><td class="h">${g(mu)}</td><td class="h">${g(v/n/n)}</td><td class="h">${g(sg2/n)}</td></tr>
+ <tr><td>S<sub>n</sub>/√n${cen?' (centred)':''}</td><td class="h">${g(t3(a))}</td><td class="h">${g(cen?0:mu*sn)}</td><td class="h">${g(v/n)}</td><td class="h">${g(sg2)}</td></tr>
+ <tr><td>Best / worst attacker</td><td class="h" colspan="2">${g(mx)} / ${g(mn)}</td><td class="h" colspan="2">≈ ${g(n*mu+ex)} / ${g(n*mu-ex)}</td></tr>`;
+ cancelAnimationFrame(PA);if(RM){CUR=SPEC.map(p=>p.c.slice());paint();return}
+ const step=()=>{let d=0;SPEC.forEach((p,k)=>p.c.forEach((x,i)=>{CUR[k][i]+=(x-CUR[k][i])*.16;d=Math.max(d,Math.abs(x-CUR[k][i]))}));paint();if(d>.4)PA=requestAnimationFrame(step);else{CUR=SPEC.map(p=>p.c.slice());paint()}};step()}
+function stopGrow(){clearInterval(GT);GT=null;$('grow').textContent='▶ Grow n'}
+$('grow').onclick=()=>{if(GT){stopGrow();return}let i=0;$('grow').textContent='⏸ Pause';const go=()=>{if(i>=CK.length){stopGrow();traj(true);return}$('n').value=CK[i++];dist()};go();GT=setInterval(go,1800)};
+/* ---- tables over n ---- */
+function chart(R,sg2){const W=440,H=240,ml=48,mr=10,mt=10,mb=26,sets=[[r=>r.v,n=>n*sg2,'var(--c1)'],[r=>r.vA,n=>sg2/n,'var(--c2)'],[r=>r.vN,n=>sg2,'var(--c3)']],all=[];
+ sets.forEach(q=>R.forEach(r=>all.push(Math.log10(q[0](r)),Math.log10(q[1](r.n)))));const lo=Math.floor(Math.min(...all)),hi=Math.ceil(Math.max(...all)),X=n=>ml+(Math.log10(n)-1)/3*(W-ml-mr),Y=l=>mt+(hi-l)/(hi-lo)*(H-mt-mb);
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Variances versus n"><rect x="${ml}" y="${mt}" width="${W-ml-mr}" height="${H-mt-mb}" fill="none" stroke="var(--bd)"/>`;
+ for(let l=lo;l<=hi;l++)s+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(l)}" y2="${Y(l)}" stroke="var(--bd)" stroke-dasharray="2 3"/><text x="${ml-4}" y="${Y(l)+3}" text-anchor="end">1e${l}</text>`;
+ CK.forEach(n=>s+=`<text x="${X(n)}" y="${H-12}" text-anchor="middle">${n}</text>`);s+=`<text x="${W/2}" y="${H-1}" text-anchor="middle">n (log scale)</text>`;
+ sets.forEach(q=>{s+=`<polyline fill="none" stroke="${q[2]}" stroke-width="1.5" stroke-dasharray="5 4" opacity=".7" points="${R.map(r=>`${X(r.n)},${Y(Math.log10(q[1](r.n)))}`).join(' ')}"/><polyline class="draw" pathLength="1" fill="none" stroke="${q[2]}" stroke-width="3" stroke-linecap="round" points="${R.map(r=>`${X(r.n)},${Y(Math.log10(q[0](r)))}`).join(' ')}"/>`+R.map(r=>`<circle class="pt" cx="${X(r.n)}" cy="${Y(Math.log10(q[0](r)))}" r="4" fill="${q[2]}" stroke="var(--card)"/>`).join('')});return s+'</svg>'}
+function tables(){const {m,mu,sg2,SN}=SIM,sg=Math.sqrt(sg2),eps=+$('eps').value;
+ if(!SIM.R||SIM.eps!==eps){const R=[];CK.forEach((n,ci)=>{const S=SN[ci];let a=0;for(const s of S)a+=s;a/=m;let v=0;for(const s of S)v+=(s-a)**2;v/=m-1;let bad=0;for(const s of S)if(Math.abs(s/n-mu)>eps)bad++;
+  const Z=Array.from(S,s=>(s-n*mu)/(sg*Math.sqrt(n))).sort((x,y)=>x-y);let D=0;Z.forEach((z,i)=>{const F=Phi(z);D=Math.max(D,Math.abs((i+1)/m-F),Math.abs(i/m-F))});
+  R.push({n,v,vA:v/n/n,vN:v/n,p:bad/m,ch:Math.min(1,sg2/(n*eps*eps)),ap:2*(1-Phi(eps*Math.sqrt(n)/sg)),D})});SIM.R=R;SIM.eps=eps}
+ const R=SIM.R;if(!SIM.chart){$('ch').innerHTML=chart(R,sg2);SIM.chart=1}
+ const T=1.36/Math.sqrt(m),row=(a,f)=>a.map(f).join(''),bar=(v,mx)=>`<div class="pb"><i style="width:${Math.min(100,v/mx*100)}%"></i></div>`;
+ $('t1').innerHTML=`<tr><th>n</th><th>Var(S<sub>n</sub>): sim. / nσ²</th><th>Var(S<sub>n</sub>/n): sim. / σ²/n</th><th>Var(S<sub>n</sub>/√n): sim. / σ²</th></tr>`+row(R,r=>`<tr><td>${r.n}</td><td class="h">${g(r.v)} / ${g(r.n*sg2)}</td><td class="h">${g(r.vA)} / ${g(sg2/r.n)}</td><td class="h">${g(r.vN)} / ${g(sg2)}</td></tr>`);
+ $('t2').innerHTML=`<tr><th>n</th><th>Simulated (ε = ${eps})</th><th>Normal approx.</th><th>Chebyshev bound</th></tr>`+row(R,r=>`<tr><td>${r.n}</td><td><b>${g(r.p)}</b>${bar(r.p,1)}</td><td class="h">${g(r.ap)}</td><td class="h">${g(r.ch)}</td></tr>`);
+ $('t3').innerHTML=`<tr><th>n</th><th>D<sub>n</sub></th><th>Noise level 1.36/√m = ${T.toFixed(3)}</th></tr>`+row(R,r=>`<tr><td>${r.n}</td><td><b>${r.D.toFixed(3)}</b>${bar(r.D,.2)}</td><td class="${r.D<=T?'ok':'bad'}">${r.D<=T?'consistent with N(0,1)':'still different'}</td></tr>`)}
+/* ---- controls ---- */
+const resim=()=>{stopGrow();$('params').textContent='Simulating…';setTimeout(simulate,15)};
+$('mod').onchange=()=>{$('p').disabled=$('mod').value==='r';resim()};$('p').oninput=()=>{$('pv').textContent=(+$('p').value).toFixed(2)};$('p').onchange=resim;$('m').onchange=resim;$('go').onclick=resim;
+$('n').onchange=()=>{stopGrow();render(true)};$('eps').oninput=()=>{$('ev').textContent=(+$('eps').value).toFixed(2);tables()};$('cen').onchange=()=>render(false);
+simulate();
+</script></main></body></html>
