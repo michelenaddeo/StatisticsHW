@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HMWK — Riemann and Lebesgue integration, and the normal CDF</title>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f1e7;--fg:#1e2230;--mut:#625f57;--card:#fffcf5;--bd:#e4dccb;--ac:#0b6b6b;--ac2:#c27a0e;--hi:#b5391c;--btn:#fff;--soft:rgba(11,107,107,.08);--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--serif:Charter,"Iowan Old Style",Georgia,"Times New Roman",serif}
+:root[data-theme="dark"]{--bg:#13161d;--fg:#ece7da;--mut:#a29d90;--card:#1a1e27;--bd:#2f3440;--ac:#4fc0b8;--ac2:#e0a24a;--hi:#ff8f6b;--btn:#0d1a1a;--soft:rgba(79,192,184,.12)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13161d;--fg:#ece7da;--mut:#a29d90;--card:#1a1e27;--bd:#2f3440;--ac:#4fc0b8;--ac2:#e0a24a;--hi:#ff8f6b;--btn:#0d1a1a;--soft:rgba(79,192,184,.12)}}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:920px;margin:0 auto;padding:16px 14px 70px}
+.hero{border-left:6px solid var(--ac);padding:4px 0 6px 20px;margin:14px 0 22px}
+.hero h1{margin:4px 0 8px;font:700 2rem/1.18 var(--serif);letter-spacing:-.01em}.hero p{margin:0;color:var(--mut);max-width:64ch}
+.hero .badge{display:block;color:var(--ac);font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+h2{font:700 1.3rem/1.25 var(--serif);margin:0 0 6px;display:flex;align-items:baseline;gap:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}h2 i{font:italic 700 1.5rem var(--serif);color:var(--ac2);flex:none;min-width:1.1em}
+h3{font-size:.95rem;margin:14px 0 4px}
+p,li{max-width:72ch}.mut{color:var(--mut);font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:18px;margin:14px 0;box-shadow:0 1px 0 var(--bd)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.col{flex:1;min-width:250px}
+label{font-size:.85rem;color:var(--mut)}input,select,textarea,button{font:inherit;padding:7px 11px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--fg)}
+input[type=range]{padding:0;accent-color:var(--ac)}input[type=number]{width:74px}textarea{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:.85rem}
+button{cursor:pointer;background:var(--ac);color:var(--btn);border:0;transition:transform .1s}button:active{transform:scale(.96)}button.sec{background:var(--soft);color:var(--ac);font-weight:600}
+button.on{background:var(--ac);color:var(--btn)}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{border-bottom:1px solid var(--bd);padding:7px 8px;text-align:left;vertical-align:top}th{color:var(--mut);font-weight:600}
+code,.mono{font-family:var(--mono);font-size:.84em}code{background:var(--soft);padding:1px 6px;border-radius:5px}
+.mono{word-break:break-all}svg{max-width:100%;height:auto}
+.hist{display:flex;align-items:flex-end;gap:3px;height:90px;border-bottom:1px solid var(--mut);margin-top:6px}
+.hist div{flex:1;background:var(--ac);min-width:6px;border-radius:3px 3px 0 0}
+.lbl{display:flex;gap:3px;font-size:.62rem;color:var(--mut)}.lbl span{flex:1;text-align:center;min-width:6px}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}.stat div{background:var(--soft);border-radius:10px;padding:10px}.stat b{display:block;font:700 1.35rem var(--serif);color:var(--ac)}.stat span{font-size:.78rem;color:var(--mut)}
+.pill{display:inline-block;font-size:.72rem;padding:1px 9px;border-radius:99px;background:var(--soft);color:var(--ac);font-weight:600}
+.bit{display:inline-block;width:1.3em;text-align:center;border-radius:4px;font-family:var(--mono)}.bit.d{background:var(--hi);color:#fff}
+.out{background:var(--soft);border-radius:10px;padding:10px 12px;margin:8px 0}
+@media print{body{background:#fff}.card{break-inside:avoid;box-shadow:none}button{display:none}}
+
+
+:root{--c1:#7c3aed;--c2:#06b6d4;--c3:#f97316;--c4:#ec4899;--c5:#22c55e}
+[hidden]{display:none!important}
+.hero{border:0;border-radius:18px;padding:26px 24px;background:linear-gradient(120deg,#6d28d9,#db2777,#f59e0b,#06b6d4,#6d28d9);background-size:300% 300%;animation:shift 14s ease infinite;box-shadow:0 14px 34px -14px #7c3aed;position:relative;overflow:hidden}
+.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.14);animation:float 9s ease-in-out infinite}.hero:before{width:150px;height:150px;right:-30px;top:-40px}.hero:after{width:90px;height:90px;right:120px;bottom:-30px;animation-delay:-4s}
+.hero h1,.hero p{color:#fff;position:relative}.hero p{opacity:.93}.hero .badge{display:inline-block;color:#fff;background:rgba(255,255,255,.22);padding:2px 12px;border-radius:99px;position:relative}
+@keyframes shift{50%{background-position:100% 50%}}@keyframes float{50%{transform:translate(-14px,16px)}}
+.card{border-top:4px solid var(--cc,var(--bd));border-radius:10px;animation:rise .6s both}@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+h2 i{color:var(--cc,var(--ac2))}
+button{background:linear-gradient(135deg,var(--c1),var(--c4));color:#fff;transition:transform .15s,box-shadow .15s}button:hover{transform:translateY(-1px);box-shadow:0 6px 14px -6px var(--c1)}button.sec{background:var(--soft);color:var(--c1)}
+a{color:var(--c1);font-weight:600;text-decoration:none}a:hover{text-decoration:underline}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px}.nav a{background:var(--soft);padding:4px 14px;border-radius:99px;font-size:.88rem}.nav a.cur{background:linear-gradient(135deg,var(--c1),var(--c4));color:#fff}
+.home{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:18px 0}
+.tile{display:block;border-radius:16px;padding:22px;color:#fff!important;text-decoration:none!important;background:linear-gradient(135deg,var(--a),var(--b));box-shadow:0 12px 26px -14px var(--a);transition:transform .25s,box-shadow .25s;animation:rise .7s both}
+.tile:hover{transform:translateY(-6px) rotate(-.4deg);box-shadow:0 20px 34px -16px var(--a)}.tile b{display:block;font:800 1.5rem/1.2 var(--serif);margin:6px 0}.tile span{opacity:.92;font-size:.95rem}.tile em{font-style:normal;display:inline-block;margin-top:12px;background:rgba(255,255,255,.25);padding:3px 14px;border-radius:99px;font-weight:700}
+td.h{text-align:center;font-variant-numeric:tabular-nums}.mono,td.mono{font-variant-numeric:tabular-nums}
+.take{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.take div{border-left:5px solid var(--tc);background:var(--soft);border-radius:8px;padding:10px 12px;font-size:.92rem}.take b{color:var(--tc)}
+.step{border-left:5px solid var(--tc);background:var(--soft);border-radius:8px;padding:10px 14px;margin:10px 0}.step b{color:var(--tc)}.f{font-family:var(--mono);font-size:.95rem;margin:6px 0;line-height:1.7}
+pre{background:#14161f;color:#e8eaf3;border-radius:10px;padding:12px 14px;overflow-x:auto;font-size:.85rem;line-height:1.55}pre .hl{background:rgba(236,72,153,.28);display:inline-block;width:100%;border-radius:3px}pre .cm{color:#8b93b0}
+.h2{position:relative;display:flex;align-items:flex-end;gap:2px;height:150px;border-bottom:1px solid var(--mut);margin-top:6px}.h2>div{flex:1;border-radius:3px 3px 0 0;transition:height .8s cubic-bezier(.2,.8,.2,1);min-width:3px}
+.mk{position:absolute;top:0;bottom:0;border-left:2px solid;pointer-events:none}.mk.d{border-left-style:dashed}
+.lg span{display:inline-block;margin-right:14px;font-size:.82rem}.lg i{display:inline-block;width:16px;border-top:3px solid;vertical-align:middle;margin-right:5px}
+.ok{color:var(--c5);font-weight:700}.bad{color:var(--c3);font-weight:700}
+svg text{font-family:var(--mono);font-size:9px;fill:var(--mut)}
+.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.8s ease forwards}@keyframes draw{to{stroke-dashoffset:0}}
+.pt{opacity:0;animation:fade .5s 1.6s forwards}@keyframes fade{to{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.draw{stroke-dashoffset:0}.pt{opacity:1}}
+.hero.big{padding:40px 28px 34px;min-height:230px}.hero.big h1{font-size:2.1rem;max-width:16ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;position:relative}.chips span{background:rgba(255,255,255,.22);color:#fff;border-radius:99px;padding:3px 14px;font-size:.85rem;font-weight:600}
+#hd .dot{position:absolute;bottom:-30px;left:var(--x);width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:grid;place-items:center;font:700 .8rem var(--mono);animation:rise2 8s linear infinite;animation-delay:var(--d)}
+@keyframes rise2{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:.95}100%{transform:translateY(-300px) scale(1.1);opacity:0}}
+.tile .k{text-transform:uppercase;letter-spacing:.12em;font-size:.72rem;font-weight:700}.tile .pv{background:rgba(255,255,255,.16);border-radius:12px;padding:10px;margin:14px 0 8px;height:96px;display:flex;align-items:flex-end;gap:3px}
+.tile .pv svg{width:100%;height:100%}.tile .pv i{flex:1;background:rgba(255,255,255,.88);border-radius:3px 3px 0 0;transform-origin:bottom;animation:pulse 2.2s ease-in-out infinite alternate;animation-delay:var(--dl)}
+@keyframes pulse{from{transform:scaleY(.82)}to{transform:scaleY(1)}}
+.loop{stroke-dasharray:1;stroke-dashoffset:1;animation:drawloop 4.5s ease-in-out infinite}@keyframes drawloop{0%{stroke-dashoffset:1}60%,100%{stroke-dashoffset:0}}
+.tags{display:flex;gap:6px;flex-wrap:wrap}.tags u{text-decoration:none;font-size:.75rem;background:rgba(0,0,0,.18);border-radius:99px;padding:1px 10px}
+.flow2{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}.flow2>div{flex:1 1 180px;border-top:5px solid var(--tc);background:var(--soft);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}.flow2 i{font:800 1.3rem var(--serif);font-style:normal;color:var(--tc)}.flow2 span{font-size:.88rem;color:var(--mut)}.flow2>em{align-self:center;font-style:normal;font-size:1.4rem;color:var(--mut)}
+@media (prefers-reduced-motion:reduce){.loop{stroke-dashoffset:0}#hd{display:none}}
+.hero{animation:none;background:linear-gradient(120deg,#6d28d9,#db2777 55%,#f59e0b);box-shadow:none}.hero:before,.hero:after{display:none}
+.hero.big{padding:28px 26px;min-height:0}.hero.big h1{font-size:1.9rem;max-width:none}
+.card,.tile{animation:none}.tile:hover{transform:translateY(-3px);box-shadow:0 14px 26px -16px var(--a)}.tile .pv i{animation:none}.loop{animation:none;stroke-dashoffset:0}
+
+.worse{color:#dc2626;font-weight:700}.mid{color:var(--c3);font-weight:700}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.src a{word-break:break-all}.cap{font-size:.88rem;color:var(--mut);margin:4px 0 0}
+select,input[type=range]{max-width:100%}
+</style></head><body><main>
+
+<section id="v-home">
+<div class="hero big"><span class="badge">Homework · Analysis and statistics</span><h1>Riemann and Lebesgue integration, and the normal CDF</h1>
+<p>Exercise 1 computes integrals by slicing the domain (Riemann) and by slicing the range (Lebesgue). Exercise 2 computes the standard normal CDF with several numerical methods and compares them with a reference.</p></div>
+<div class="home">
+<a class="tile" href="#ex1" style="--a:#ea580c;--b:#db2777"><span class="k">Exercise 1</span><b>Riemann and Lebesgue integration</b><span>Nine functions, two ways of approximating the integral, and the Dirichlet and Thomae functions where they differ.</span><div class="pv" id="pv1"></div><em>Open exercise 1 →</em></a>
+<a class="tile" href="#ex2" style="--a:#0891b2;--b:#6366f1"><span class="k">Exercise 2</span><b>Numerical computation of the normal CDF</b><span>Trapezoid, Simpson, series and erf-based approximations, checked against a reference. Why no elementary formula exists.</span><div class="pv" id="pv2"></div><em>Open exercise 2 →</em></a></div>
+<div class="card" style="--cc:var(--c1)"><h2>Contents</h2>
+<p><b>Exercise 1.</b> Pictures of the two partitions, a table of results for any function, a convergence study (error against number of evaluations and time), and a section on the pathological functions.</p>
+<p><b>Exercise 2.</b> The Liouville argument, an interactive evaluation of Φ(x) with six methods, a table against web references, error curves and a benchmark.</p>
+<p class="mut" style="margin-bottom:0">Each exercise also has its own address, ending in #ex1 and #ex2.</p></div>
+</section>
+
+<section id="v-ex1" hidden>
+<div class="nav"><a href="#home">← Home</a><a href="#ex1" class="cur">Exercise 1</a><a href="#ex2">Exercise 2</a></div>
+<div class="hero"><span class="badge">Exercise 1</span><h1>Riemann and Lebesgue integration</h1><p>Two ways of building an integral from slices. Riemann cuts the domain into intervals; Lebesgue cuts the range into levels and measures where the function takes each level.</p></div>
+
+<div class="card" style="--cc:var(--c3)"><h2><i>1</i>The two definitions</h2>
+<div class="two"><div class="step" style="--tc:var(--c2)"><b>Riemann.</b> Split [a, b] into N intervals and add f(ξ<sub>i</sub>)·Δx<sub>i</sub>, with ξ<sub>i</sub> a tag in each interval. f is Riemann integrable when lower and upper (Darboux) sums meet, whatever the tags: bounded and continuous almost everywhere.</div>
+<div class="step" style="--tc:var(--c4)"><b>Lebesgue.</b> Split the range into levels y<sub>j</sub> ≤ f &lt; y<sub>j+1</sub> and add y<sub>j</sub>·μ({x : y<sub>j</sub> ≤ f(x) &lt; y<sub>j+1</sub>}), where μ is the length (measure) of the preimage. It only needs the preimages to be measurable.</div></div>
+<p class="mut" style="margin-bottom:0">For every Riemann integrable function the two integrals coincide. In the numerical versions below, Riemann uses N tags; Lebesgue evaluates f at M points, counts how many fall in each of K levels (the measure of the preimage is the fraction of points), and averages the lower and upper level sums.</p></div>
+
+<div class="card" style="--cc:var(--c2)"><h2><i>2</i>Pick a function</h2>
+<div class="row"><label>Function <select id="fs"></select></label><label>N (rectangles) <input id="pn" type="range" min="4" max="60" value="12"></label><b id="pnv">12</b><label>K (levels) <input id="pk" type="range" min="2" max="24" value="8"></label><b id="pkv">8</b></div>
+<p id="fx" class="mut"></p>
+<div class="two"><div><b>Riemann: slicing the domain</b><div id="pr"></div><p class="cap" id="cr"></p></div><div><b>Lebesgue: slicing the range</b><div id="pl"></div><p class="cap" id="cl"></p></div></div></div>
+
+<div class="card" style="--cc:var(--c1)"><h2><i>3</i>Numerical results</h2>
+<div class="row"><label>N = M = K = <select id="rn"><option>10</option><option>11</option><option>100</option><option>101</option><option selected>1000</option><option>10000</option><option>100000</option></select></label></div>
+<div class="scroll"><table id="rt"></table></div><p id="rnote"></p></div>
+
+<div class="card" style="--cc:var(--c4)"><h2><i>4</i>Convergence and cost</h2>
+<p class="mut">Absolute error against the exact value, for increasing numbers of function evaluations (Monte Carlo is a single random run).</p>
+<div id="cvm" class="mut"></div><div id="cvc"></div><div class="lg" id="cvl"></div><div class="scroll"><table id="cvt"></table></div></div>
+
+<div class="card" style="--cc:var(--c5)"><h2><i>5</i>Where the two approaches differ</h2>
+<div class="scroll"><table id="pt"></table></div>
+<ul><li><b>Dirichlet</b> (1 on rationals, 0 on irrationals). Every interval contains both kinds of points, so lower Darboux sums are 0 and upper sums are 1 for every N: the Riemann sum depends on the tags (1 with rational tags, 0 with random tags) and the Riemann integral does not exist. For Lebesgue, {f = 1} = ℚ ∩ [0, 1] is countable with measure 0, so ∫ f = 0. A grid of points is made of rationals, so "grid" sampling just repeats the Riemann sum; random points are irrational with probability 1, which is why Monte Carlo finds the right measure.</li>
+<li><b>Thomae</b> (1/q at p/q, 0 at irrationals). It is continuous at every irrational point, so it is Riemann integrable, and both approaches converge to 0. The convergence is slow: the upper sums need the few small denominators in each interval.</li>
+<li><b>Step functions and 1/√x.</b> A step function with two values is a simple function: two levels give the exact Lebesgue integral, while Riemann sums are exact only when the jump falls on a partition point. 1/√x is unbounded: the Riemann integral is improper (the left sum has to skip x = 0) and errors fall like N<sup>−1/2</sup>, while the Lebesgue levels have to reach large values.</li></ul></div>
+
+<div class="card" style="--cc:var(--c1)"><h2><i>6</i>Conclusions</h2>
+<div class="take"><div style="--tc:var(--c2)"><b>Same value.</b> For Riemann integrable functions both methods converge to the same number: sin x → 2, x² → 1/3, |x − ½| → 1/4, sin x / x → 1.85194.</div>
+<div style="--tc:var(--c1)"><b>Accuracy.</b> For smooth functions the midpoint rule is by far the best (error ∝ N<sup>−2</sup>); the left rule goes like N<sup>−1</sup>. Lebesgue sums with K = N levels converge roughly like N<sup>−1</sup> but with a much larger constant (they are limited by the level width), and Monte Carlo only reaches N<sup>−1/2</sup>.</div>
+<div style="--tc:var(--c3)"><b>Cost.</b> All methods need about N evaluations. Lebesgue also needs a binning step, so it is a bit slower for no gain on smooth functions.</div>
+<div style="--tc:var(--c4)"><b>Pathological cases.</b> Lebesgue's approach handles functions that Riemann's cannot (Dirichlet) because it looks at the size of level sets, not at how the function behaves on intervals.</div></div></div>
+</section>
+
+<section id="v-ex2" hidden>
+<div class="nav"><a href="#home">← Home</a><a href="#ex1">Exercise 1</a><a href="#ex2" class="cur">Exercise 2</a></div>
+<div class="hero"><span class="badge">Exercise 2</span><h1>Numerical computation of the normal CDF</h1><p>Φ(x) = ∫ from −∞ to x of e<sup>−t²/2</sup>/√(2π) dt has no elementary closed form, so it is computed numerically. Six methods are compared for accuracy and speed.</p></div>
+
+<div class="card" style="--cc:var(--c1)"><h2><i>1</i>Why no elementary formula, and what erf does</h2>
+<div class="step" style="--tc:var(--c1)"><b>Liouville's theorem.</b> If f·e<sup>g</sup> (f, g rational) has an elementary antiderivative, it has the form h·e<sup>g</sup> with h rational. For e<sup>−x²/2</sup> (f = 1, g = −x²/2), differentiating h·e<sup>g</sup> and matching e<sup>g</sup> requires <span class="mono">h′ − x·h = 1</span>.
+<br>If h is a polynomial of degree d ≥ 0, h′ − x·h has degree d + 1 ≥ 1 and cannot equal 1. If h has a pole of order k at a finite point c, h′ has a pole of order k + 1 and x·h only order k, so h′ − x·h still has a pole. No rational h exists: there is no elementary antiderivative (Liouville, 1830s; a general decision procedure is Risch's algorithm).</div>
+<div class="step" style="--tc:var(--c2)"><b>The error function.</b> Define erf(z) = (2/√π) ∫<sub>0</sub><sup>z</sup> e<sup>−t²</sup> dt. Then, exactly, <span class="mono">Φ(x) = ½ (1 + erf(x/√2))</span>. This is an exact analytic representation, but erf is just a name for the integral: it is a special function, not a finite combination of elementary ones, so to get a number we still need an algorithm (quadrature, series, continued fraction or rational approximation).</div></div>
+
+<div class="card" style="--cc:var(--c3)"><h2><i>2</i>Compute Φ(x)</h2>
+<div class="row"><label>x <input id="xs" type="range" min="-6" max="6" step="0.01" value="1.96"></label><b id="xv">1.96</b>
+<label>n (trapezoid/Simpson) <select id="nn"><option>10</option><option>20</option><option>50</option><option selected>100</option><option>200</option><option>500</option><option>1000</option></select></label>
+<label>terms T (series) <input id="tt" type="range" min="5" max="200" value="60"></label><b id="tv">60</b></div>
+<div id="bell"></div>
+<div class="scroll"><table id="mt"></table></div>
+<p class="cap">Reference for any x: the Hart/West rational approximation, accurate to about 2·10<sup>−16</sup> (checked against the C library and the web table below). Times are measured in this browser.</p></div>
+
+<div class="card" style="--cc:var(--c2)"><h2><i>3</i>Comparison with web references</h2>
+<div class="scroll"><table id="wt"></table></div>
+<p class="cap src">Φ(k) for k = 1…6 comes from the probability P(|X| ≤ kσ) = erf(k/√2), Φ(k) = (1 + P)/2, with P to 12 digits as tabulated online (Wikipedia, <a href="https://en.wikipedia.org/wiki/68%E2%80%9395%E2%80%9399.7_rule">68–95–99.7 rule</a>; MathWorld, <a href="https://mathworld.wolfram.com/68-95-997Rule.html">68-95-99.7 Rule</a>). The 12-digit values agree with the C library erf to 4·10<sup>−13</sup>, which sets the floor of the errors in the “web” rows. Other rows use the C library erfc. Course reference for the topic: <a href="https://faculty.etsu.edu/gardnerr/4047/notes-Hogg-McKean-Craig/Hogg-McKean-Craig-3-4.pdf">Hogg–McKean–Craig §3.4</a>.</p></div>
+
+<div class="card" style="--cc:var(--c4)"><h2><i>4</i>Accuracy against cost</h2>
+<div class="two"><div><b>Quadrature error against n (at the chosen x)</b><div id="c1"></div><div class="lg"><span><i style="border-color:var(--c1)"></i>trapezoid</span><span><i style="border-color:var(--c2)"></i>Simpson</span></div></div>
+<div><b>Maclaurin series of erf: error against the number of terms</b><div id="c2"></div><div class="lg"><span><i style="border-color:var(--c2)"></i>x = 1</span><span><i style="border-color:var(--c3)"></i>x = 3</span><span><i style="border-color:var(--c4)"></i>x = 6</span></div></div></div>
+<p class="cap">Trapezoid error falls like n<sup>−2</sup> and Simpson like n<sup>−4</sup>, until rounding errors take over. The alternating Maclaurin series needs more terms as |x| grows and also loses digits to cancellation: for x = 6 its error levels off near 4·10<sup>−11</sup> however many terms are added.</p>
+<div class="row"><button id="bench">Run benchmark over [−6, 6]</button></div><div class="scroll"><table id="bt"></table></div></div>
+
+<div class="card" style="--cc:var(--c5)"><h2><i>5</i>Conclusions</h2>
+<div class="take"><div style="--tc:var(--c1)"><b>Exact but not elementary.</b> erf gives Φ exactly as an analytic object, but no finite formula in elementary functions computes it (Liouville).</div>
+<div style="--tc:var(--c2)"><b>Quadrature.</b> Simple and robust: Simpson with 100 intervals is already accurate to about 10<sup>−10</sup>, but costs hundreds of evaluations of e<sup>−t²/2</sup> per call.</div>
+<div style="--tc:var(--c3)"><b>Series.</b> The Maclaurin series of erf is fine near 0 but unstable for |x| ≳ 3. A series with positive terms near the centre plus a continued fraction in the tails reaches rounding-level accuracy.</div>
+<div style="--tc:var(--c4)"><b>Rational approximations.</b> The Hart/West algorithm is as fast as the cheapest formula here and accurate to rounding. The classic Abramowitz–Stegun formula is cheap but limited to about 10<sup>−7</sup>, with poor relative accuracy in the tails.</div></div></div>
+</section>
+
+<script>
+const gcd=(a,b)=>{while(b){[a,b]=[b,a%b]}return a};
+const rat=(p,q)=>{const d=gcd(p,q);return{p:p/d,q:q/d}};
+const FS=[
+ {id:'sin',name:'sin(x) on [0, π]',a:0,b:Math.PI,f:x=>Math.sin(x),exact:2},
+ {id:'sq',name:'x² on [0, 1]',a:0,b:1,f:x=>x*x,exact:1/3},
+ {id:'st3',name:'1 if x < 0.5, 3 if x ≥ 0.5',a:0,b:1,f:x=>x<.5?1:3,exact:2},
+ {id:'abs',name:'|x − 0.5| on [0, 1]',a:0,b:1,f:x=>Math.abs(x-.5),exact:.25},
+ {id:'inv',name:'1/√x on (0, 1]',a:0,b:1,f:x=>1/Math.sqrt(x),exact:2,imp:1},
+ {id:'st0',name:'1 if x < 0.5, 0 if x ≥ 0.5',a:0,b:1,f:x=>x<.5?1:0,exact:.5},
+ {id:'sinc',name:'sin(x)/x on [0, π]',a:0,b:Math.PI,f:x=>x===0?1:Math.sin(x)/x,exact:1.8519370519824662},
+ {id:'dir',name:'Dirichlet function on [0, 1]',a:0,b:1,path:'dir',exact:0},
+ {id:'tho',name:"Thomae's function on [0, 1]",a:0,b:1,path:'tho',exact:0}];
+const ev=(F,x,r)=>F.path==='dir'?(r?1:0):F.path==='tho'?(r?1/r.q:0):F.f(x);
+function riemann(F,N,tag){const{a,b}=F,h=(b-a)/N;let s=0;for(let i=0;i<N;i++){let x,r=null;
+ if(tag==='left'){x=a+i*h;r=rat(i,N)}else if(tag==='right'){x=a+(i+1)*h;r=rat(i+1,N)}else if(tag==='mid'){x=a+(i+.5)*h;r=rat(2*i+1,2*N)}else x=a+(i+Math.random())*h;
+ const v=ev(F,x,F.path?r:null);if(isFinite(v))s+=v}return s*h}
+function thoSup(x0,x1,N){for(let q=1;q<=N+1;q++){const p=Math.ceil(x0*q-1e-12);if(p/q<=x1+1e-12)return 1/q}return 1}
+function darboux(F,N){if(F.imp)return null;if(F.path==='dir')return{lo:0,hi:1};const{a,b}=F,h=(b-a)/N;let lo=0,hi=0;
+ for(let i=0;i<N;i++){const x0=a+i*h,x1=x0+h;if(F.path==='tho'){hi+=thoSup(x0,x1,N)*h;continue}let mn=Infinity,mx=-Infinity;for(let k=0;k<=8;k++){const v=F.f(x0+(x1-x0)*k/8);if(v<mn)mn=v;if(v>mx)mx=v}lo+=mn*h;hi+=mx*h}return{lo,hi}}
+function lebesgue(F,M,K,mode){const{a,b}=F,w=b-a,v=new Float64Array(M);
+ for(let i=0;i<M;i++){let x,r=null;if(mode==='grid'){x=a+(i+.5)*w/M;r=rat(2*i+1,2*M)}else x=a+Math.random()*w;v[i]=ev(F,x,F.path?r:null)}
+ const mp=new Map();for(let i=0;i<M&&mp.size<=80;i++)mp.set(v[i],(mp.get(v[i])||0)+1);
+ if(mp.size<=80){let s=0;mp.forEach((c,y)=>s+=y*c);const val=s*w/M;return{v:val,lo:val,hi:val,simple:true}}
+ let mn=Infinity,mx=-Infinity;for(let i=0;i<M;i++){if(v[i]<mn)mn=v[i];if(v[i]>mx)mx=v[i]}
+ const h=(mx-mn)/K,c=new Float64Array(K);for(let i=0;i<M;i++)c[Math.min(K-1,Math.floor((v[i]-mn)/h))]++;
+ let lo=0,hi=0;for(let j=0;j<K;j++){lo+=(mn+j*h)*c[j];hi+=(mn+(j+1)*h)*c[j]}lo*=w/M;hi*=w/M;return{v:(lo+hi)/2,lo,hi,simple:false}}
+
+const SQ2PI=Math.sqrt(2*Math.PI),pdf=t=>Math.exp(-t*t/2)/SQ2PI;
+const sgn=(x,f)=>x<0?1-f(-x):f(x);
+// trapezoid / Simpson on [0,x], n subintervals
+const trap=(x,n)=>{const a=Math.abs(x),h=a/n;let s=.5*(pdf(0)+pdf(a));for(let i=1;i<n;i++)s+=pdf(i*h);const v=.5+s*h;return x<0?1-v:v};
+const simp=(x,n)=>{n+=n%2;const a=Math.abs(x),h=a/n;let s=pdf(0)+pdf(a);for(let i=1;i<n;i++)s+=(i%2?4:2)*pdf(i*h);const v=.5+s*h/3;return x<0?1-v:v};
+// Maclaurin series of erf, T terms
+const erfSeries=(x,T)=>{const z=x/Math.SQRT2,z2=z*z;let t=z,s=0;for(let k=0;k<T;k++){s+=t/(2*k+1);t*=-z2/(k+1)}return .5*(1+2/Math.sqrt(Math.PI)*s)};
+// hybrid: series for |x|<3, continued fraction in the tail
+const hybrid=x=>{const a=Math.abs(x);let v;if(a<3){let t=a,s=a,k=0;while(Math.abs(t)>1e-17*Math.abs(s)){k++;t*=a*a/(2*k+1);s+=t}v=.5+pdf(a)*s}
+ else{let f=a;for(let k=60;k>=1;k--)f=a+k/f;v=1-pdf(a)/f}return x<0?1-v:v};
+// Abramowitz-Stegun 7.1.26 erf approximation
+const as=x=>{const z=Math.abs(x)/Math.SQRT2,t=1/(1+.3275911*z),e=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-z*z);return x<0?.5*(1-e):.5*(1+e)};
+// Hart / West rational approximation
+const west=x=>{const a=Math.abs(x);let c;if(a>37)c=0;else{const E=Math.exp(-a*a/2);if(a<7.07106781186547){let b=3.52624965998911e-2*a+.700383064443688;b=b*a+6.37396220353165;b=b*a+33.912866078383;b=b*a+112.079291497871;b=b*a+221.213596169931;b=b*a+220.206867912376;c=E*b;
+ b=8.83883476483184e-2*a+1.75566716318264;b=b*a+16.064177579207;b=b*a+86.7807322029461;b=b*a+296.564248779674;b=b*a+637.333633378831;b=b*a+793.826512519948;b=b*a+440.413735824752;c/=b}
+ else{let b=a+.65;b=a+4/b;b=a+3/b;b=a+2/b;b=a+1/b;c=E/b/2.506628274631}}
+ return x>0?1-c:c};
+
+const $=i=>document.getElementById(i);
+const g=x=>{if(x===0)return'0';const a=Math.abs(x);return a>=1e6||a<1e-3?x.toExponential(2):+x.toPrecision(5)+''},eg=x=>x===0?'0':x.toExponential(1);
+function route(){const h=(location.hash||'').slice(1),v=h==='ex1'||h==='ex2'?h:'home';['home','ex1','ex2'].forEach(x=>$('v-'+x).hidden=x!==v);if(typeof scrollTo==='function')scrollTo(0,0)}
+if(typeof addEventListener==='function')addEventListener('hashchange',route);
+function llchart(S,fl=1e-16){const W=470,H=250,ml=52,mr=12,mt=10,mb=28,xs=S.flatMap(s=>s.pts.map(p=>p[0])),x0=Math.log10(Math.min(...xs)),x1=Math.log10(Math.max(...xs)),ys=S.flatMap(s=>s.pts.map(p=>Math.max(p[1],fl)));
+ const lo=Math.floor(Math.log10(Math.min(...ys))),hi=Math.max(Math.ceil(Math.log10(Math.max(...ys))),lo+1),X=x=>ml+(Math.log10(x)-x0)/(x1-x0)*(W-ml-mr),Y=y=>mt+(hi-Math.log10(Math.max(y,fl)))/(hi-lo)*(H-mt-mb);
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Error chart"><rect x="${ml}" y="${mt}" width="${W-ml-mr}" height="${H-mt-mb}" fill="none" stroke="var(--bd)"/>`;
+ for(let l=lo;l<=hi;l+=Math.ceil((hi-lo)/7))s+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(10**l)}" y2="${Y(10**l)}" stroke="var(--bd)" stroke-dasharray="2 3"/><text x="${ml-4}" y="${Y(10**l)+3}" text-anchor="end">1e${l}</text>`;
+ for(let k=Math.ceil(x0);k<=Math.floor(x1);k++)s+=`<text x="${X(10**k)}" y="${H-12}" text-anchor="middle">1e${k}</text>`;
+ S.forEach(q=>{s+=`<polyline fill="none" stroke="${q.c}" stroke-width="2.5" stroke-linejoin="round" points="${q.pts.map(p=>`${X(p[0])},${Y(p[1])}`).join(' ')}"/>`+q.pts.map(p=>`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="3" fill="${q.c}"/>`).join('')});return s+'</svg>'}
+/* ================= Exercise 1 ================= */
+let FI=7;const cur=()=>FS[FI];
+$('fs').innerHTML=FS.map((F,i)=>`<option value="${i}">${F.name}</option>`).join('');$('fs').value=0;FI=0;
+function pathPic(F){const W=340,H=230,ml=30,mr=8,mt=8,mb=22,X=x=>ml+x*(W-ml-mr),Y=y=>mt+(1-y)*(H-mt-mb);let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${F.name}"><rect x="${ml}" y="${mt}" width="${W-ml-mr}" height="${H-mt-mb}" fill="var(--soft)" stroke="var(--bd)"/>`;
+ if(F.path==='dir'){s+=`<line x1="${X(0)}" x2="${X(1)}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--c2)" stroke-width="3"/>`;for(let i=0;i<=120;i++)s+=`<circle cx="${X(i/120)}" cy="${Y(1)}" r="1.7" fill="var(--c4)"/>`;s+=`<text x="${X(.02)}" y="${Y(1)+14}">f = 1 on rationals (dots)</text><text x="${X(.02)}" y="${Y(0)-8}">f = 0 on irrationals (line)</text>`}
+ else for(let q=1;q<=40;q++)for(let p=0;p<=q;p++)if(gcd(p,q)===1)s+=`<circle cx="${X(p/q)}" cy="${Y(1/q)}" r="2.2" fill="var(--c4)"/>`;
+ return s+`<text x="${ml-4}" y="${Y(1)+3}" text-anchor="end">1</text><text x="${ml-4}" y="${Y(0)+3}" text-anchor="end">0</text><text x="${X(0)}" y="${H-8}" text-anchor="middle">0</text><text x="${X(1)}" y="${H-8}" text-anchor="middle">1</text></svg>`}
+function pic(){const F=cur(),N=+$('pn').value,K=+$('pk').value;$('pnv').textContent=N;$('pkv').textContent=K;$('fx').innerHTML=`Exact value of the integral: <b>${g(F.exact)}</b>${F.path?' (Lebesgue integral; the function is '+(F.path==='dir'?'not Riemann integrable)':'Riemann integrable too)'):F.imp?' (improper Riemann integral)':''}`;
+ if(F.path){const s=pathPic(F);$('pr').innerHTML=s;$('pl').innerHTML=s;$('cr').textContent=F.path==='dir'?'Every interval contains rationals (f = 1) and irrationals (f = 0): no rectangle height is meaningful.':'Intervals contain points of very different heights; only the few small denominators matter, and the upper sums shrink to 0.';$('cl').textContent=F.path==='dir'?'Only two levels: {f = 1} is ℚ ∩ [0, 1], measure 0, so the integral is 0·1 + 1·0 = 0.':'Level {f ≥ 1/q} contains finitely many points, so every level set above 0 has measure 0 and the integral is 0.';return}
+ const {a,b}=F,W=340,H=230,ml=30,mr=8,mt=8,mb=22,S=400,xs=[],ys=[];let ym=0;
+ for(let i=0;i<S;i++){const x=a+(b-a)*(i+.5)/S,y=F.f(x);xs.push(x);ys.push(y);if(isFinite(y)&&y>ym)ym=y}ym=Math.min(ym,8)*1.08;
+ const X=x=>ml+(x-a)/(b-a)*(W-ml-mr),Y=y=>mt+(1-Math.min(y,ym)/ym)*(H-mt-mb);
+ const ax=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${F.name}"><rect x="${ml}" y="${mt}" width="${W-ml-mr}" height="${H-mt-mb}" fill="var(--soft)" stroke="var(--bd)"/><text x="${ml-4}" y="${Y(0)+3}" text-anchor="end">0</text><text x="${ml-4}" y="${mt+8}" text-anchor="end">${g(ym)}</text><text x="${X(a)}" y="${H-8}" text-anchor="middle">${g(a)}</text><text x="${X(b)}" y="${H-8}" text-anchor="middle">${g(b)}</text>`;
+ const curve=`<polyline fill="none" stroke="var(--fg)" stroke-width="2" points="${xs.map((x,i)=>`${X(x)},${Y(ys[i])}`).join(' ')}"/></svg>`;
+ let r='',h=(b-a)/N,rs=0;for(let i=0;i<N;i++){const v=F.f(a+(i+.5)*h);rs+=v*h;r+=`<rect x="${X(a+i*h)}" y="${Y(v)}" width="${Math.max(.5,X(a+(i+1)*h)-X(a+i*h)-.6)}" height="${Y(0)-Y(v)}" fill="hsl(${200+i*3} 75% 55%)" opacity=".55"/>`}
+ let l='',ls=0;for(let j=0;j<K;j++){const y0=ym*j/K,y1=ym*(j+1)/K;let run=-1,cnt=0;for(let i=0;i<=S;i++){const on=i<S&&ys[i]>=y1;if(on){cnt++;if(run<0)run=i}if(!on&&run>=0){const xa=X(a+(b-a)*run/S),xb=X(a+(b-a)*i/S);l+=`<rect x="${xa}" y="${Y(y1)}" width="${xb-xa}" height="${Y(y0)-Y(y1)}" fill="hsl(${j*360/K} 80% 55%)" opacity=".6"/>`;run=-1}}ls+=(y1-y0)*(b-a)*cnt/S}
+ $('pr').innerHTML=ax+r+curve;$('pl').innerHTML=ax+l+curve;
+ $('cr').innerHTML=`Midpoint Riemann sum with N = ${N}: <b>${g(rs)}</b>`;$('cl').innerHTML=`Lebesgue lower sum with K = ${K} levels${F.imp?' (levels cut at '+g(ym)+')':''}: <b>${g(ls)}</b>`}
+const NOTE={dir:'Riemann sums depend on the tags (1 with rational tags, 0 with random tags); lower and upper Darboux sums are 0 and 1: f is not Riemann integrable. The Lebesgue value is 0. Grid points are all rational, so the grid column repeats the Riemann sum; random points are irrational almost surely.',tho:'Thomae is Riemann integrable with integral 0: all rows tend to 0, slowly; random tags give exactly 0.',inv:'1/√x is unbounded: the left sum skips the singular tag x = 0 and the errors decay slowly (about N^−1/2).',st3:'A step function is a simple function: Lebesgue sums use the exact levels and are exact up to how the grid splits the jump. Riemann sums are exact only if 0.5 is a partition point (try N = 11).',st0:'A step function is a simple function: Lebesgue sums use the exact levels and are exact up to how the grid splits the jump. Riemann sums are exact only if 0.5 is a partition point (try N = 11).'};
+function res(){const F=cur(),N=+$('rn').value,ex=F.exact,rows=[],t=(n,f)=>{const t0=performance.now(),v=f();rows.push([n,v,performance.now()-t0])};
+ t('Riemann, left tags',()=>riemann(F,N,'left'));t('Riemann, midpoint tags',()=>riemann(F,N,'mid'));t('Riemann, right tags',()=>riemann(F,N,'right'));t('Riemann, random tags',()=>riemann(F,N,'rand'));
+ let D=null,td=0;if(N<=5000){const t0=performance.now();D=darboux(F,N);td=performance.now()-t0}
+ rows.push(['Darboux lower sum',D?D.lo:null,td]);rows.push(['Darboux upper sum',D?D.hi:null,td]);
+ t('Lebesgue, grid points (M = K = N)',()=>lebesgue(F,N,N,'grid').v);t('Lebesgue, Monte Carlo (M = K = N)',()=>lebesgue(F,N,N,'mc').v);
+ const cl=e=>e<1e-9?'ok':e<1e-3?'mid':'worse';
+ $('rt').innerHTML=`<tr><th>Method (N = ${N})</th><th>Value</th><th>|value − ${g(ex)}|</th><th>Time (ms)</th></tr>`+rows.map(r=>r[1]===null?`<tr><td>${r[0]}</td><td class="h" colspan="3">${F.imp?'not defined (unbounded)':'computed for N ≤ 5000'}</td></tr>`:`<tr><td>${r[0]}</td><td class="h">${g(r[1])}</td><td class="h ${cl(Math.abs(r[1]-ex))}">${eg(Math.abs(r[1]-ex))}</td><td class="h">${r[2].toFixed(1)}</td></tr>`).join('');
+ $('rnote').textContent=NOTE[F.id]||'Smooth function: all methods converge to the exact value; the midpoint rule is the most accurate for the same N.'}
+function conv(){const F=cur();$('cvm').textContent='Computing…';setTimeout(()=>{const Ns=[11,31,101,301,1001,3001,10001,30001,100001],M=[['Riemann, left tags','var(--c1)',N=>riemann(F,N,'left')],['Riemann, midpoint','var(--c2)',N=>riemann(F,N,'mid')],['Lebesgue, grid points','var(--c3)',N=>lebesgue(F,N,N,'grid').v],['Lebesgue, Monte Carlo','var(--c4)',N=>lebesgue(F,N,N,'mc').v]];
+  const R=M.map(m=>({n:m[0],c:m[1],pts:Ns.map(N=>{const t0=performance.now(),e=Math.abs(m[2](N)-F.exact);return[N,e,performance.now()-t0]})}));
+  $('cvc').innerHTML=llchart(R.map(r=>({c:r.c,pts:r.pts.map(p=>[p[0],p[1]])})));$('cvl').innerHTML=R.map(r=>`<span><i style="border-color:${r.c}"></i>${r.n}</span>`).join('');$('cvm').textContent=F.path?'Errors are measured from the Lebesgue value 0; errors below 10⁻¹⁶ are drawn on the bottom line.':'';
+  $('cvt').innerHTML=`<tr><th>N</th>${R.map(r=>`<th>${r.n}</th>`).join('')}</tr>`+Ns.map((N,i)=>`<tr><td>${N}</td>${R.map(r=>`<td class="h">${eg(r.pts[i][1])}</td>`).join('')}</tr>`).join('')+`<tr><td><b>time at N = 100001 (ms)</b></td>${R.map(r=>`<td class="h"><b>${r.pts[8][2].toFixed(0)}</b></td>`).join('')}</tr>`},20)}
+function path(){const N=1000,Fd=FS[7],Ft=FS[8],cell=(F,k)=>{if(k<4)return riemann(F,N,['left','mid','right','rand'][k]);if(k===4)return darboux(F,N).lo;if(k===5)return darboux(F,N).hi;return lebesgue(F,N,N,k===6?'grid':'mc').v};
+ const nm=['Riemann, left tags','Riemann, midpoint tags','Riemann, right tags','Riemann, random tags','Darboux lower sum','Darboux upper sum','Lebesgue, grid points','Lebesgue, Monte Carlo'];
+ $('pt').innerHTML=`<tr><th>N = ${N}</th><th>Dirichlet</th><th>Thomae</th></tr>`+nm.map((n,k)=>`<tr><td>${n}</td><td class="h">${g(cell(Fd,k))}</td><td class="h">${g(cell(Ft,k))}</td></tr>`).join('')+`<tr><td><b>Lebesgue integral</b></td><td class="h"><b>0</b></td><td class="h"><b>0</b></td></tr>`}
+$('fs').onchange=()=>{FI=+$('fs').value;pic();res();conv()};$('pn').oninput=pic;$('pk').oninput=pic;$('rn').onchange=res;
+/* ================= Exercise 2 ================= */
+const WEB={1:.682689492137,2:.954499736104,3:.997300203937,4:.999936657516,5:.999999426697,6:.999999998027};
+const REFP=[[-6,9.865876450377012e-10,'C erfc'],[-3,.0013498980316300957,'C erfc'],[.5,.6914624612740131,'C erfc'],[1,(1+WEB[1])/2,'web'],[1.96,.9750021048517795,'C erfc'],[2,(1+WEB[2])/2,'web'],[3,(1+WEB[3])/2,'web'],[4,(1+WEB[4])/2,'web'],[5,(1+WEB[5])/2,'web'],[6,(1+WEB[6])/2,'web']];
+const N2=()=>+$('nn').value,T2=()=>+$('tt').value;
+const METH=[['Trapezoid rule',x=>trap(x,N2())],['Simpson rule',x=>simp(x,N2())],['erf Maclaurin series',x=>erfSeries(x,T2())],['Series + continued fraction',hybrid],['erf approximation (A&S 7.1.26)',as],['Rational approximation (Hart/West)',west]];
+const ec=e=>e<1e-12?'ok':e<1e-6?'mid':'worse',us=f=>{let n=0,x=-5.9;const t0=performance.now();while(performance.now()-t0<5){for(let i=0;i<10;i++){f(x);x+=.0013;if(x>5.9)x=-5.9;n++}}return(performance.now()-t0)/n*1000};
+function bell(x){const W=460,H=140,ml=8,mr=8,mt=8,mb=20,X=t=>ml+(t+6)/12*(W-ml-mr),Y=y=>mt+(1-y/.42)*(H-mt-mb);let c='',a=`M${X(-6)} ${Y(0)}`;for(let i=0;i<=240;i++){const t=-6+12*i/240,p=`${X(t)} ${Y(pdf(t))}`;c+=(i?'L':'M')+p;if(t<=x)a+='L'+p}a+=`L${X(Math.max(-6,x))} ${Y(0)}Z`;
+ let tk='';for(let t=-6;t<=6;t+=2)tk+=`<text x="${X(t)}" y="${H-5}" text-anchor="middle">${t}</text>`;$('bell').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Normal density"><path d="${a}" fill="var(--c3)" opacity=".4"/><path d="${c}" fill="none" stroke="var(--fg)" stroke-width="2"/><line x1="${ml}" x2="${W-mr}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--mut)"/>${tk}</svg>`}
+function upd2(){const x=+$('xs').value,r=west(x);$('xv').textContent=x.toFixed(2);$('tv').textContent=T2();bell(x);
+ $('mt').innerHTML=`<tr><th>Φ(${x.toFixed(2)}) ≈ ${g(r)}</th><th>Value</th><th>Absolute error</th><th>µs per call</th></tr>`+METH.map(m=>{const v=m[1](x),e=Math.abs(v-r);return`<tr><td>${m[0]}</td><td class="h">${isFinite(v)?v.toPrecision(15):'overflow'}</td><td class="h ${ec(e)}">${eg(e)}</td><td class="h">${us(m[1]).toFixed(2)}</td></tr>`}).join('');
+ $('wt').innerHTML=`<tr><th>x</th><th>Reference Φ(x)</th><th>Source</th>${METH.map(m=>`<th>${m[0]}</th>`).join('')}</tr>`+REFP.map(q=>`<tr><td>${q[0]}</td><td class="h">${q[1].toPrecision(12)}</td><td class="h">${q[2]}</td>${METH.map(m=>{const e=Math.abs(m[1](q[0])-q[1]);return`<td class="h ${ec(e)}">${eg(e)}</td>`}).join('')}</tr>`).join('');
+ const ns=[2,4,8,16,32,64,128,256,512,1024,2048,4096,8192];$('c1').innerHTML=llchart([{c:'var(--c1)',pts:ns.map(n=>[n,Math.abs(trap(x,n)-r)])},{c:'var(--c2)',pts:ns.map(n=>[n,Math.abs(simp(x,n)-r)])}],1e-17)}
+function c2(){const Ts=[1,2,4,8,16,32,64,128,200];$('c2').innerHTML=llchart([[1,'var(--c2)'],[3,'var(--c3)'],[6,'var(--c4)']].map(q=>({c:q[1],pts:Ts.map(T=>[T,Math.abs(erfSeries(q[0],T)-west(q[0]))])})),1e-17)}
+function bench(){$('bt').innerHTML='<tr><td>Running…</td></tr>';setTimeout(()=>{const rows=METH.map(m=>{let mx=0;for(let i=-600;i<=600;i++){const x=i/100,e=Math.abs(m[1](x)-west(x));if(e>mx)mx=e}return[m[0],us(m[1]),mx]});
+ $('bt').innerHTML=`<tr><th>Method (n = ${N2()}, T = ${T2()})</th><th>µs per call</th><th>Max |error| on [−6, 6]</th></tr>`+rows.map((r,i)=>`<tr><td>${r[0]}</td><td class="h">${r[1].toFixed(2)}</td><td class="h ${i===5?'ok':ec(r[2])}">${i===5?'≈ 2e-16 (vs C erfc)':eg(r[2])}</td></tr>`).join('')},20)}
+['xs','tt'].forEach(i=>$(i).oninput=upd2);$('nn').onchange=upd2;$('bench').onclick=bench;
+/* ================= home previews, start ================= */
+function prev(){let s='<svg viewBox="0 0 300 90" preserveAspectRatio="none">';for(let i=0;i<14;i++){const x0=10+i*20,h=Math.sin((i+.5)/14*Math.PI)*70;s+=`<rect x="${x0}" y="${84-h}" width="18" height="${h}" fill="#fff" opacity=".5"/>`}s+='<polyline fill="none" stroke="#fff" stroke-width="3" points="'+Array.from({length:60},(_,i)=>`${10+i*4.6},${84-Math.sin(i/59*Math.PI)*70}`).join(' ')+'"/></svg>';$('pv1').innerHTML=s;
+ let c='',a='M10 84';for(let i=0;i<=80;i++){const t=-3+6*i/80,p=`${10+i*3.6} ${84-Math.exp(-t*t/2)*70}`;c+=(i?'L':'M')+p;if(t<=.8)a+='L'+p}a+=`L${10+51*3.6} 84Z`;$('pv2').innerHTML=`<svg viewBox="0 0 300 90" preserveAspectRatio="none"><path d="${a}" fill="#fff" opacity=".45"/><path d="${c}" fill="none" stroke="#fff" stroke-width="3"/></svg>`}
+route();prev();pic();res();conv();path();upd2();c2();bench();
+</script></main></body></html>
