@@ -12,5 +12,4 @@ JavaScript and inline SVG charts, no external libraries.
 | `HMWK_3` | **Aggregate scores: law of large numbers and central limit theorem.** m attackers against n systems under Bernoulli and Rademacher models. Sₙ, Sₙ/n and Sₙ/√n studied through trajectories, histograms, variances, and convergence in probability and in distribution. |
 | `HMWK_4` | **Welford recurrences and sample statistics.** Derivation of the recursive formulas for mean, sum of squares and variance, with a numerical stability test; sample means and variances of m hackers on n systems compared with μ and σ² as n grows. |
 | `HMWK_5` | **Riemann and Lebesgue integration, and the normal CDF.** Numerical integrals of nine functions with both approaches, including the Dirichlet and Thomae functions; Φ(x) computed with six methods (trapezoid, Simpson, series, erf approximations). |
-
-To try one, download the file and open it in a browser.
+| `HMWK_6` | **Statistical independence and the Chi-square test.** Contingency table built programmatically from a bivariate dataset, with marginal and conditional frequencies, expected frequencies under independence, the χ² statistic and its p-value. Interprets the result and separates statistical association from causality. |
