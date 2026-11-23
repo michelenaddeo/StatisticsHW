@@ -78,6 +78,7 @@ svg text{font-family:var(--mono);font-size:9px;fill:var(--mut)}
 .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}.cap{font-size:.88rem;color:var(--mut);margin:4px 0 0}
 .imp{background:var(--soft);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:.88rem;line-height:1.8}
 select,input[type=range]{max-width:100%}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 </style></head><body><main>
 
 <section id="v-home">
@@ -129,7 +130,7 @@ select,input[type=range]{max-width:100%}
 <div class="row"><label>p <select id="lp"><option>0.5</option><option selected>0.3</option><option>0.1</option></select></label><label>ε <input id="le" type="range" min="0.02" max="0.2" step="0.01" value="0.05"></label><b id="lev">0.05</b></div>
 <div class="two"><div><b>Running average of 15 runs</b><div id="ltr"></div></div><div><b>Three measures of convergence</b><div id="lch"></div><div class="lg"><span><i style="border-color:var(--c1)"></i>in probability</span><span><i style="border-color:var(--c4)"></i>almost sure (sup over k ≥ n)</span><span><i style="border-color:var(--c2)"></i>mean square</span></div></div></div>
 <div class="scroll"><table id="lt"></table></div>
-<p class="cap">The sup probability (b) is never below (a): staying inside the band for <i>all</i> later times is harder than being inside at time n. Both go to 0, as the strong law predicts.</p>
+<p class="cap">The sup probability (b) is never below (a): staying inside the band for <i>all</i> later times is harder than being inside at time n. Both go to 0, as the strong law predicts. At the last point the two curves meet: the sup is computed up to k = 3000, so at n = 3000 there is no later time left to look at and the two quantities coincide.</p>
 
 <h3>B. Counterexamples: why the arrows do not reverse</h3>
 <div class="tabs"><button id="cb0">In probability and L², not a.s.</button><button id="cb1" class="sec">a.s. and in probability, not L²</button><button id="cb2" class="sec">In distribution only</button></div>
@@ -222,14 +223,6 @@ H is a hypothesis (or a parameter value θ), D is the observed data.</div>
 
 const LG=[676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
 function lgamma(z){if(z<.5)return Math.log(Math.PI/Math.sin(Math.PI*z))-lgamma(1-z);z-=1;let x=.99999999999980993;for(let i=0;i<8;i++)x+=LG[i]/(z+i+1);const t=z+7.5;return .5*Math.log(2*Math.PI)+(z+.5)*Math.log(t)-t+Math.log(x)}
-function gammaQ(a,x){if(x<=0)return 1;const pre=Math.exp(-x+a*Math.log(x)-lgamma(a));
- if(x<a+1){let ap=a,sum=1/a,del=sum;for(let n=0;n<1000;n++){ap++;del*=x/ap;sum+=del;if(Math.abs(del)<Math.abs(sum)*1e-16)break}return Math.max(0,1-sum*pre)}
- let b=x+1-a,c=1e300,d=1/b,h=d;for(let i=1;i<1000;i++){const an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<1e-300)d=1e-300;c=b+an/c;if(Math.abs(c)<1e-300)c=1e-300;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<1e-16)break}return pre*h}
-const chiP=(x,df)=>gammaQ(df/2,x/2);
-function chiCrit(df,al){let lo=0,hi=10;while(chiP(hi,df)>al)hi*=2;for(let i=0;i<200;i++){const m=(lo+hi)/2;if(chiP(m,df)>al)lo=m;else hi=m}return(lo+hi)/2}
-const chiPdf=(x,k)=>x<=0?0:Math.exp((k/2-1)*Math.log(x)-x/2-(k/2)*Math.log(2)-lgamma(k/2));
-function erfcApprox(z){return 0}
-
 function betacf(x,a,b){const FP=1e-300;let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;if(Math.abs(d)<FP)d=FP;d=1/d;let h=d;
  for(let m=1;m<=300;m++){const m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<FP)d=FP;c=1+aa/c;if(Math.abs(c)<FP)c=FP;d=1/d;h*=d*c;
   aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<FP)d=FP;c=1+aa/c;if(Math.abs(c)<FP)c=FP;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<3e-16)break}return h}
@@ -277,7 +270,7 @@ function cx(){const col=['var(--c1)','var(--c3)','var(--c4)'];[0,1,2].forEach(i=
   <ul><li><b>In probability and L²: yes, to 0.</b> P(X<sub>n</sub> = 1) = E[X<sub>n</sub>²] = 2<sup>−j</sup> → 0.</li><li><b>Almost surely: no.</b> Every block contains one 1, so X<sub>n</sub> = 1 infinitely often for every outcome: for this U it happens at n = ${ones.join(', ')}, … The sequence never settles.</li></ul>`}
  else if(CB===1){const R=[10,100,1000,10000].map(n=>{let c=0;const m=200000;for(let i=0;i<m;i++)if(Math.random()<1/n)c++;return[n,c/m]});const u=CU;
   h=`<p><b>X<sub>n</sub> = n on the event {U ≤ 1/n}, and 0 otherwise.</b></p><div class="scroll"><table><tr><th>n</th><th>P(X<sub>n</sub> ≠ 0): simulated / 1/n</th><th>E[X<sub>n</sub>]</th><th>E[X<sub>n</sub>²]</th></tr>${R.map(r=>`<tr><td>${r[0]}</td><td class="h">${r[1].toFixed(5)} / ${(1/r[0]).toFixed(5)}</td><td class="h">1</td><td class="h"><b>${r[0]}</b></td></tr>`).join('')}</table></div>
-  <ul><li><b>In probability: yes, to 0</b>, since P(X<sub>n</sub> ≠ 0) = 1/n → 0.</li><li><b>Almost surely: yes, to 0.</b> For every outcome U &gt; 0, X<sub>n</sub> = 0 as soon as n &gt; 1/U. For the current U = ${u.toFixed(3)}, X<sub>n</sub> is non-zero only for n ≤ ${Math.floor(1/u)}.</li><li><b>In L²: no.</b> E[X<sub>n</sub>²] = n → ∞. Rare but huge values keep the mean square large even though the sequence tends to 0.</li></ul><div class="row"><button id="nu" class="sec">New outcome U</button></div>`}
+  <ul><li><b>In probability: yes, to 0</b>, since P(X<sub>n</sub> ≠ 0) = 1/n → 0.</li><li><b>Almost surely: yes, to 0.</b> For every outcome U &gt; 0, X<sub>n</sub> = 0 as soon as n &gt; 1/U. For the current U = ${u.toFixed(3)}, X<sub>n</sub> is non-zero only for n ≤ ${Math.floor(1/u)}.</li><li><b>In L²: no.</b> E[X<sub>n</sub>²] = n → ∞. Rare but huge values keep the mean square large even though the sequence tends to 0. The same happens in L¹: E[X<sub>n</sub>] = 1 for every n, so not even the mean converges, and the failure is not a matter of second moments alone.</li></ul><div class="row"><button id="nu" class="sec">New outcome U</button></div>`}
  else{const odd=CB===2&&window.__odd,m=5000,Z=Array.from({length:m},randn),X=Z.map(z=>odd?-z:z);let b=0;for(let i=0;i<m;i++)if(Math.abs(X[i]-Z[i])>.5)b++;
   h=`<p><b>X<sub>n</sub> = (−1)<sup>n</sup>·Z</b>, with Z standard normal. Every X<sub>n</sub> has exactly the N(0, 1) distribution, so X<sub>n</sub> → Z in distribution. Pick the parity of n:</p><div class="row"><button id="pe" class="${odd?'sec':''}">n even (X<sub>n</sub> = Z)</button><button id="po" class="${odd?'':'sec'}">n odd (X<sub>n</sub> = −Z)</button></div>
   <div class="two"><div>${histN(X,m)}</div><div class="out">KS distance of X<sub>n</sub> from N(0, 1): <b>${ksN(X).toFixed(3)}</b> (sampling noise about ${(1.36/Math.sqrt(m)).toFixed(3)})<br>P(|X<sub>n</sub> − Z| &gt; 0.5): <b>${(b/m).toFixed(3)}</b></div></div>
